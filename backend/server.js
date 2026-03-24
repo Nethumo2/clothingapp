@@ -27,6 +27,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/orders', require('./routes/orderRoutes'));
+app.use('/api/categories', require('./routes/categoryRoutes'));
 
 // Make uploads folder static so images can be accessed locally
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
