@@ -38,18 +38,20 @@ router.get('/:id', async (req, res) => {
 // @access  Private/Admin
 router.post('/', protect, admin, upload.single('image'), async (req, res) => {
     try {
-        const { name, price, size, category } = req.body;
+        const { name, price, size, category, countInStock, description } = req.body;
         let imageUrl = '';
 
         if (req.file) {
-            imageUrl = `/uploads/${req.file.filename}`;
+            imageUrl = req.file.path; // Cloudinary returns the full URL in path
         }
 
         const product = new Product({
             name,
             price,
-            size: typeof size === 'string' ? size.split(',').map(s => s.trim()) : size, // parse comma separated
+            description,
+            size: typeof size === 'string' ? size.split(',').map(s => s.trim()) : size,
             category,
+            countInStock,
             imageUrl,
         });
 
@@ -65,17 +67,19 @@ router.post('/', protect, admin, upload.single('image'), async (req, res) => {
 // @access  Private/Admin
 router.put('/:id', protect, admin, upload.single('image'), async (req, res) => {
     try {
-        const { name, price, size, category } = req.body;
+        const { name, price, size, category, description, countInStock } = req.body;
         const product = await Product.findById(req.params.id);
 
         if (product) {
             product.name = name || product.name;
             product.price = price || product.price;
+            product.description = description || product.description;
+            product.countInStock = countInStock !== undefined ? countInStock : product.countInStock;
             if (size) product.size = typeof size === 'string' ? size.split(',').map(s => s.trim()) : size;
             product.category = category || product.category;
 
             if (req.file) {
-                product.imageUrl = `/uploads/${req.file.filename}`;
+                product.imageUrl = req.file.path; // Cloudinary returns the full URL in path
             }
 
             const updatedProduct = await product.save();
