@@ -64,6 +64,33 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// @desc    Guest Login
+// @route   POST /api/auth/guest
+// @access  Public
+router.post('/guest', async (req, res) => {
+    try {
+        const guestName = `Guest_${Math.floor(Math.random() * 10000)}`;
+        const guestEmail = `${guestName.toLowerCase()}@guest.com`;
+        
+        const user = await User.create({
+            name: guestName,
+            email: guestEmail,
+            password: 'guestpassword123',
+        });
+
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            isAdmin: user.isAdmin,
+            token: generateToken(user._id),
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
 const { protect, admin } = require('../middleware/auth');
 
 // @desc    Get all users
