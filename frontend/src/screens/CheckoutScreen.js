@@ -1,37 +1,19 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-<<<<<<< HEAD
   ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
-=======
-  ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 } from 'react-native';
 import { createOrder, clearCart } from '../services/api';
 import { useCart } from '../context/CartContext';
 
-<<<<<<< HEAD
 const showAlert = (title, message) => {
-    if (Platform.OS === 'web') {
-        window.alert(`${title}\n${message}`);
-    } else {
-        Alert.alert(title, message);
-    }
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
 };
 
-const showConfirm = (title, message, onConfirm) => {
-    if (Platform.OS === 'web') {
-        if (window.confirm(`${title}\n${message}`)) onConfirm();
-    } else {
-        Alert.alert(title, message, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'OK', onPress: onConfirm }
-        ]);
-    }
-};
-
-=======
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 export default function CheckoutScreen({ route, navigation }) {
   const { cart } = route.params || {};
   const { refreshCart } = useCart();
@@ -43,17 +25,10 @@ export default function CheckoutScreen({ route, navigation }) {
   const [phoneNumber, setPhoneNumber] = useState('');
 
   const validate = () => {
-<<<<<<< HEAD
     if (!fullName.trim()) { showAlert('Error', 'Please enter your full name'); return false; }
     if (!address.trim()) { showAlert('Error', 'Please enter your address'); return false; }
     if (!city.trim()) { showAlert('Error', 'Please enter your city'); return false; }
     if (!phoneNumber.trim() || phoneNumber.length < 9) { showAlert('Error', 'Please enter a valid phone number'); return false; }
-=======
-    if (!fullName.trim()) { Alert.alert('Error', 'Please enter your full name'); return false; }
-    if (!address.trim()) { Alert.alert('Error', 'Please enter your address'); return false; }
-    if (!city.trim()) { Alert.alert('Error', 'Please enter your city'); return false; }
-    if (!phoneNumber.trim() || phoneNumber.length < 9) { Alert.alert('Error', 'Please enter a valid phone number'); return false; }
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
     return true;
   };
 
@@ -61,7 +36,7 @@ export default function CheckoutScreen({ route, navigation }) {
     if (!validate()) return;
     setLoading(true);
     try {
-      const orderItems = (cart?.items || []).map(item => ({
+      const orderItems = (cart?.items || []).map((item) => ({
         name: item.product?.name,
         qty: item.quantity,
         image: item.product?.imageUrl,
@@ -77,32 +52,16 @@ export default function CheckoutScreen({ route, navigation }) {
 
       const result = await createOrder(orderData);
 
-<<<<<<< HEAD
-        if (result._id) {
-            await clearCart();
-            refreshCart();
-            showAlert('🎉 Order Placed!', `Order ID: ${result._id.slice(-8).toUpperCase()}`);
-            navigation.navigate('OrderHistory');
-      } else {
-          showAlert('Error', result.message || 'Failed to place order');
-      }
-    } catch (e) {
-        showAlert('Error', 'Something went wrong. Please try again.');
-=======
       if (result._id) {
         await clearCart();
         refreshCart();
-        Alert.alert(
-          '🎉 Order Placed!',
-          `Your order has been placed successfully.\nOrder ID: ${result._id.slice(-8).toUpperCase()}`,
-          [{ text: 'View Orders', onPress: () => navigation.navigate('OrderHistory') }]
-        );
+        showAlert('Order Placed!', `Order ID: ${result._id.slice(-8).toUpperCase()}`);
+        navigation.navigate('OrderHistory');
       } else {
-        Alert.alert('Error', result.message || 'Failed to place order');
+        showAlert('Error', result.message || 'Failed to place order');
       }
-    } catch (e) {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
+    } catch (_e) {
+      showAlert('Error', 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -117,20 +76,19 @@ export default function CheckoutScreen({ route, navigation }) {
     >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtn}>←</Text>
+          <Text style={styles.backBtn}>Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Checkout</Text>
-        <View style={{ width: 24 }} />
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Order Summary */}
         <Text style={styles.sectionTitle}>Order Summary</Text>
         <View style={styles.summaryBox}>
           {items.map((item, i) => (
             <View key={i} style={styles.summaryRow}>
               <Text style={styles.summaryItem} numberOfLines={1}>
-                {item.product?.name} ({item.size}) × {item.quantity}
+                {item.product?.name} ({item.size}) x {item.quantity}
               </Text>
               <Text style={styles.summaryPrice}>
                 LKR {(item.product?.price * item.quantity).toLocaleString()}
@@ -143,7 +101,6 @@ export default function CheckoutScreen({ route, navigation }) {
           </View>
         </View>
 
-        {/* Shipping Details */}
         <Text style={styles.sectionTitle}>Shipping Details</Text>
         <View style={styles.formBox}>
           <Text style={styles.inputLabel}>Full Name *</Text>
@@ -181,10 +138,9 @@ export default function CheckoutScreen({ route, navigation }) {
           />
         </View>
 
-        {/* Payment Note */}
         <View style={styles.paymentNote}>
-          <Text style={styles.paymentNoteIcon}>💳</Text>
-          <Text style={styles.paymentNoteText}>Cash on Delivery — Pay when your order arrives.</Text>
+          <Text style={styles.paymentNoteIcon}>COD</Text>
+          <Text style={styles.paymentNoteText}>Cash on Delivery - Pay when your order arrives.</Text>
         </View>
       </ScrollView>
 
@@ -198,7 +154,7 @@ export default function CheckoutScreen({ route, navigation }) {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.placeOrderBtnText}>
-              Place Order — LKR {Number(cart?.totalPrice || 0).toLocaleString()}
+              Place Order - LKR {Number(cart?.totalPrice || 0).toLocaleString()}
             </Text>
           )}
         </TouchableOpacity>
@@ -213,7 +169,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: '#1a1a1a', padding: 20, paddingTop: 50,
   },
-  backBtn: { color: '#fff', fontSize: 22, fontWeight: '700' },
+  backBtn: { color: '#fff', fontSize: 14, fontWeight: '700' },
   headerTitle: { color: '#fff', fontSize: 20, fontWeight: '800' },
   content: { padding: 16, paddingBottom: 30 },
   sectionTitle: { fontSize: 17, fontWeight: '800', color: '#1a1a1a', marginBottom: 12, marginTop: 8 },
@@ -242,7 +198,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, padding: 14, gap: 10,
     borderLeftWidth: 4, borderLeftColor: '#2ecc71',
   },
-  paymentNoteIcon: { fontSize: 22 },
+  paymentNoteIcon: { fontSize: 13, fontWeight: '900', color: '#2ecc71' },
   paymentNoteText: { flex: 1, fontSize: 13, color: '#555', lineHeight: 18 },
   footer: {
     backgroundColor: '#fff', padding: 16, paddingBottom: 28,

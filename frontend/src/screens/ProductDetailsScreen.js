@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, Image, TouchableOpacity, StyleSheet,
-<<<<<<< HEAD
     ScrollView, ActivityIndicator, Modal, Alert, Platform
-=======
-    ScrollView, ActivityIndicator, Modal
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 } from 'react-native';
 
 import {
@@ -17,7 +13,6 @@ import {
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
-<<<<<<< HEAD
 const showAlert = (title, message) => {
     if (Platform.OS === 'web') {
         window.alert(`${title}\n${message}`);
@@ -26,19 +21,6 @@ const showAlert = (title, message) => {
     }
 };
 
-const showConfirm = (title, message, onConfirm) => {
-    if (Platform.OS === 'web') {
-        if (window.confirm(`${title}\n${message}`)) onConfirm();
-    } else {
-        Alert.alert(title, message, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'OK', onPress: onConfirm }
-        ]);
-    }
-};
-
-=======
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 export default function ProductDetailsScreen({ route, navigation }) {
     const { productId } = route.params;
     const { refreshCart } = useCart();
@@ -55,25 +37,21 @@ export default function ProductDetailsScreen({ route, navigation }) {
     const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
-        loadProduct();
-    }, []);
+        const loadProduct = async () => {
+            try {
+                const data = await fetchProductById(productId);
+                setProduct(data);
+                const sizeArray = data?.size || data?.sizes || [];
+                if (sizeArray.length > 0) setSelectedSize(sizeArray[0]);
+            } catch (_e) {
+                showAlert('Error', 'Failed to load product');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const loadProduct = async () => {
-        try {
-            const data = await fetchProductById(productId);
-            setProduct(data);
-            const sizeArray = data?.size || data?.sizes || [];
-            if (sizeArray.length > 0) setSelectedSize(sizeArray[0]);
-        } catch (e) {
-<<<<<<< HEAD
-            showAlert('Error', 'Failed to load product');
-=======
-            window.alert('Failed to load product');
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
-        } finally {
-            setLoading(false);
-        }
-    };
+        loadProduct();
+    }, [productId]);
 
     const handleDelete = async () => {
         setDeleting(true);
@@ -84,11 +62,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
             navigation.goBack();
         } catch (err) {
             setShowDeleteModal(false);
-<<<<<<< HEAD
-            showAlert('Error: ' + (err.message || 'Delete failed'));
-=======
-            window.alert('Error: ' + (err.message || 'Delete failed'));
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
+            showAlert('Error', err.message || 'Delete failed');
         } finally {
             setDeleting(false);
         }
@@ -99,12 +73,8 @@ export default function ProductDetailsScreen({ route, navigation }) {
             await addToCart(product._id, quantity, selectedSize, product.price);
             await refreshCart();
             setShowCartModal(true);
-        } catch (e) {
-<<<<<<< HEAD
+        } catch (_e) {
             showAlert('Error', 'Could not add to cart');
-=======
-            window.alert('Could not add to cart');
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
         }
     };
 
@@ -214,7 +184,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
                     <View style={styles.modal}>
                         <Text style={styles.modalTitle}>🗑️ Delete Product</Text>
                         <Text style={styles.modalMessage}>
-                            Are you sure you want to delete "{product?.name}"? This cannot be undone.
+                            {`Are you sure you want to delete "${product?.name}"? This cannot be undone.`}
                         </Text>
                         <View style={styles.modalBtnRow}>
                             <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowDeleteModal(false)}>

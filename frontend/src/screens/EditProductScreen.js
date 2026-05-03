@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity,
-<<<<<<< HEAD
     StyleSheet, ActivityIndicator, ScrollView, Image, Alert, Platform
 } from 'react-native';
 import { fetchProductById, updateProduct } from '../services/api';
@@ -14,23 +13,6 @@ const showAlert = (title, message) => {
     }
 };
 
-const showConfirm = (title, message, onConfirm) => {
-    if (Platform.OS === 'web') {
-        if (window.confirm(`${title}\n${message}`)) onConfirm();
-    } else {
-        Alert.alert(title, message, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'OK', onPress: onConfirm }
-        ]);
-    }
-};
-
-=======
-    StyleSheet, ActivityIndicator, Alert, ScrollView, Image
-} from 'react-native';
-import { fetchProductById, updateProduct } from '../services/api';
-
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 export default function EditProductScreen({ route, navigation }) {
     const { productId } = route.params;
 
@@ -45,51 +27,38 @@ export default function EditProductScreen({ route, navigation }) {
     const [fetching, setFetching] = useState(true);
 
     useEffect(() => {
+        const loadProduct = async () => {
+            try {
+                const data = await fetchProductById(productId);
+                setName(data.name || '');
+                setPrice(String(data.price || ''));
+
+                setCategory(data.category?.toString() || '');
+                setDescription(data.description || '');
+                setCountInStock(String(data.countInStock ?? data.stock ?? ''));
+
+                const sizeData = data.size || data.sizes || [];
+                setSize(Array.isArray(sizeData) ? sizeData.join(', ') : String(sizeData));
+
+                const img = data.imageUrl ||
+                    data.images?.[0]?.url ||
+                    (typeof data.images?.[0] === 'string' ? data.images[0] : '') ||
+                    '';
+                setImageUrl(img);
+
+            } catch (_e) {
+                showAlert('Error', 'Failed to load product');
+            } finally {
+                setFetching(false);
+            }
+        };
+
         loadProduct();
-    }, []);
-
-    const loadProduct = async () => {
-        try {
-            const data = await fetchProductById(productId);
-            setName(data.name || '');
-            setPrice(String(data.price || ''));
-
-            // Handle category as ObjectId or string
-            setCategory(data.category?.toString() || '');
-            setDescription(data.description || '');
-
-            // Handle both stock field names
-            setCountInStock(String(data.countInStock ?? data.stock ?? ''));
-
-            // Handle both size field names
-            const sizeData = data.size || data.sizes || [];
-            setSize(Array.isArray(sizeData) ? sizeData.join(', ') : String(sizeData));
-
-            // Handle both image field formats
-            const img = data.imageUrl ||
-                data.images?.[0]?.url ||
-                (typeof data.images?.[0] === 'string' ? data.images[0] : '') ||
-                '';
-            setImageUrl(img);
-
-        } catch (e) {
-<<<<<<< HEAD
-            showAlert('Error', 'Failed to load product');
-=======
-            Alert.alert('Error', 'Failed to load product');
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
-        } finally {
-            setFetching(false);
-        }
-    };
+    }, [productId]);
 
     const handleSubmit = async () => {
         if (!name || !price || !size) {
-<<<<<<< HEAD
             showAlert('Error', 'Please fill name, price and size');
-=======
-            Alert.alert('Error', 'Please fill name, price and size');
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
             return;
         }
         setLoading(true);
@@ -103,18 +72,10 @@ export default function EditProductScreen({ route, navigation }) {
                 size,
                 imageUrl,
             });
-<<<<<<< HEAD
             showAlert('Success', 'Product updated!');
             navigation.navigate('Home');
         } catch (e) {
-            showAlert(e.message || 'Failed to update product');
-=======
-            Alert.alert('Success', 'Product updated!', [
-                { text: 'OK', onPress: () => navigation.goBack() }
-            ]);
-        } catch (e) {
-            Alert.alert('Error', e.message || 'Failed to update product');
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
+            showAlert('Error', e.message || 'Failed to update product');
         } finally {
             setLoading(false);
         }

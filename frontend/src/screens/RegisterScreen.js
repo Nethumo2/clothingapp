@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity,
-<<<<<<< HEAD
     StyleSheet, ActivityIndicator, Alert, Platform
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
@@ -14,23 +13,6 @@ const showAlert = (title, message) => {
     }
 };
 
-const showConfirm = (title, message, onConfirm) => {
-    if (Platform.OS === 'web') {
-        if (window.confirm(`${title}\n${message}`)) onConfirm();
-    } else {
-        Alert.alert(title, message, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'OK', onPress: onConfirm }
-        ]);
-    }
-};
-
-=======
-    StyleSheet, ActivityIndicator, Alert
-} from 'react-native';
-import { useAuth } from '../context/AuthContext';
-
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 export default function RegisterScreen({ navigation }) {
     const { register } = useAuth();
 
@@ -41,22 +23,14 @@ export default function RegisterScreen({ navigation }) {
 
     const handleRegister = async () => {
         if (!name || !email || !password) {
-<<<<<<< HEAD
             return showAlert('Error', 'All fields are required');
-=======
-            return Alert.alert('Error', 'All fields are required');
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
         }
 
         try {
             setLoading(true);
             await register(name, email, password);
         } catch (e) {
-<<<<<<< HEAD
             showAlert('Register Failed', e.message || 'Something went wrong');
-=======
-            Alert.alert('Register Failed', e.message || 'Something went wrong');
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
         } finally {
             setLoading(false);
         }

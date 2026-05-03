@@ -1,37 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-<<<<<<< HEAD
-  Image, ActivityIndicator, Alert, Platform
-=======
-  Image, ActivityIndicator, Alert,
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
+  Image, ActivityIndicator, Alert, Platform,
 } from 'react-native';
-import { fetchCart, removeFromCart, clearCart } from '../services/api';
+import { fetchCart, removeFromCart, clearCart, updateCartItem } from '../services/api';
 import { useCart } from '../context/CartContext';
 
-<<<<<<< HEAD
 const showAlert = (title, message) => {
-    if (Platform.OS === 'web') {
-        window.alert(`${title}\n${message}`);
-    } else {
-        Alert.alert(title, message);
-    }
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
 };
 
 const showConfirm = (title, message, onConfirm) => {
-    if (Platform.OS === 'web') {
-        if (window.confirm(`${title}\n${message}`)) onConfirm();
-    } else {
-        Alert.alert(title, message, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'OK', onPress: onConfirm }
-        ]);
-    }
+  if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n${message}`)) onConfirm();
+  } else {
+    Alert.alert(title, message, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'OK', onPress: onConfirm },
+    ]);
+  }
 };
 
-=======
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 export default function CartScreen({ navigation }) {
   const { refreshCart } = useCart();
   const [cart, setCart] = useState(null);
@@ -55,34 +48,32 @@ export default function CartScreen({ navigation }) {
       const updated = await removeFromCart(itemId);
       setCart(updated);
       refreshCart();
-    } catch (e) {
-<<<<<<< HEAD
+    } catch (_e) {
       showAlert('Error', 'Failed to remove item');
-=======
-      Alert.alert('Error', 'Failed to remove item');
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
+    }
+  };
+
+  const handleQuantityChange = async (item, nextQuantity) => {
+    if (nextQuantity < 1) {
+      handleRemove(item._id);
+      return;
+    }
+
+    try {
+      const updated = await updateCartItem(item._id, nextQuantity);
+      setCart(updated);
+      refreshCart();
+    } catch (_e) {
+      showAlert('Error', 'Failed to update quantity');
     }
   };
 
   const handleClear = () => {
-<<<<<<< HEAD
-      showConfirm('Clear Cart', 'Remove all items from cart?', async () => {
-          await clearCart();
-          await loadCart();
-          refreshCart();
-      });
-=======
-    Alert.alert('Clear Cart', 'Remove all items from cart?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Clear', style: 'destructive', onPress: async () => {
-          await clearCart();
-          await loadCart();
-          refreshCart();
-        }
-      },
-    ]);
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
+    showConfirm('Clear Cart', 'Remove all items from cart?', async () => {
+      await clearCart();
+      await loadCart();
+      refreshCart();
+    });
   };
 
   const renderItem = ({ item }) => (
@@ -95,13 +86,27 @@ export default function CartScreen({ navigation }) {
       <View style={styles.itemInfo}>
         <Text style={styles.itemName} numberOfLines={2}>{item.product?.name}</Text>
         <Text style={styles.itemSize}>Size: {item.size}</Text>
-        <Text style={styles.itemQty}>Qty: {item.quantity}</Text>
+        <View style={styles.quantityRow}>
+          <TouchableOpacity
+            style={styles.quantityBtn}
+            onPress={() => handleQuantityChange(item, item.quantity - 1)}
+          >
+            <Text style={styles.quantityBtnText}>-</Text>
+          </TouchableOpacity>
+          <Text style={styles.itemQty}>{item.quantity}</Text>
+          <TouchableOpacity
+            style={styles.quantityBtn}
+            onPress={() => handleQuantityChange(item, item.quantity + 1)}
+          >
+            <Text style={styles.quantityBtnText}>+</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.itemPrice}>
           LKR {(Number(item.product?.price) * item.quantity).toLocaleString()}
         </Text>
       </View>
       <TouchableOpacity style={styles.removeBtn} onPress={() => handleRemove(item._id)}>
-        <Text style={styles.removeBtnText}>✕</Text>
+        <Text style={styles.removeBtnText}>x</Text>
       </TouchableOpacity>
     </View>
   );
@@ -114,7 +119,7 @@ export default function CartScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtn}>←</Text>
+          <Text style={styles.backBtn}>Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Cart</Text>
         {items.length > 0 && (
@@ -126,7 +131,7 @@ export default function CartScreen({ navigation }) {
 
       {items.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>🛒</Text>
+          <Text style={styles.emptyIcon}>Cart</Text>
           <Text style={styles.emptyText}>Your cart is empty</Text>
           <TouchableOpacity style={styles.shopBtn} onPress={() => navigation.navigate('Home')}>
             <Text style={styles.shopBtnText}>Start Shopping</Text>
@@ -149,7 +154,7 @@ export default function CartScreen({ navigation }) {
               style={styles.checkoutBtn}
               onPress={() => navigation.navigate('Checkout', { cart })}
             >
-              <Text style={styles.checkoutBtnText}>Proceed to Checkout →</Text>
+              <Text style={styles.checkoutBtnText}>Proceed to Checkout</Text>
             </TouchableOpacity>
           </View>
         </>
@@ -165,7 +170,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: '#1a1a1a', padding: 20, paddingTop: 50,
   },
-  backBtn: { color: '#fff', fontSize: 22, fontWeight: '700' },
+  backBtn: { color: '#fff', fontSize: 14, fontWeight: '700' },
   headerTitle: { color: '#fff', fontSize: 20, fontWeight: '800' },
   clearBtn: { color: '#e63946', fontWeight: '700', fontSize: 14 },
   list: { padding: 14, paddingBottom: 20 },
@@ -178,7 +183,13 @@ const styles = StyleSheet.create({
   itemInfo: { flex: 1, marginLeft: 12 },
   itemName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
   itemSize: { fontSize: 12, color: '#888' },
-  itemQty: { fontSize: 12, color: '#888' },
+  quantityRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
+  quantityBtn: {
+    width: 28, height: 28, borderRadius: 8,
+    backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center',
+  },
+  quantityBtnText: { fontSize: 16, fontWeight: '800', color: '#1a1a1a' },
+  itemQty: { minWidth: 32, textAlign: 'center', fontSize: 14, fontWeight: '800', color: '#1a1a1a' },
   itemPrice: { fontSize: 15, fontWeight: '800', color: '#e63946', marginTop: 4 },
   removeBtn: {
     width: 28, height: 28, borderRadius: 14,
@@ -187,7 +198,7 @@ const styles = StyleSheet.create({
   },
   removeBtnText: { color: '#e63946', fontSize: 12, fontWeight: '700' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  emptyIcon: { fontSize: 64 },
+  emptyIcon: { fontSize: 24, fontWeight: '800', color: '#1a1a1a' },
   emptyText: { fontSize: 18, fontWeight: '700', color: '#555' },
   shopBtn: { backgroundColor: '#1a1a1a', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 28 },
   shopBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },

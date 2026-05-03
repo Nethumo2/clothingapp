@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity,
-<<<<<<< HEAD
     StyleSheet, ActivityIndicator, Alert, Platform
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
@@ -15,23 +14,6 @@ const showAlert = (title, message) => {
     }
 };
 
-const showConfirm = (title, message, onConfirm) => {
-    if (Platform.OS === 'web') {
-        if (window.confirm(`${title}\n${message}`)) onConfirm();
-    } else {
-        Alert.alert(title, message, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'OK', onPress: onConfirm }
-        ]);
-    }
-};
-
-=======
-    StyleSheet, ActivityIndicator, Alert
-} from 'react-native';
-import { useAuth } from '../context/AuthContext';
-
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 export default function LoginScreen({ navigation }) {
     const { login } = useAuth();
 
@@ -41,22 +23,14 @@ export default function LoginScreen({ navigation }) {
 
     const handleLogin = async () => {
         if (!email || !password) {
-<<<<<<< HEAD
             return showAlert('Error', 'Please enter email and password');
-=======
-            return Alert.alert('Error', 'Please enter email and password');
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
         }
 
         try {
             setLoading(true);
             await login(email, password);
         } catch (e) {
-<<<<<<< HEAD
             showAlert('Login Failed', e.message || 'Something went wrong');
-=======
-            Alert.alert('Login Failed', e.message || 'Something went wrong');
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
         } finally {
             setLoading(false);
         }

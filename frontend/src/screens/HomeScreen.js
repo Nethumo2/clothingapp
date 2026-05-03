@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     View, Text, FlatList, TouchableOpacity, StyleSheet,
-<<<<<<< HEAD
-    Image, TextInput, ActivityIndicator, RefreshControl, Alert, Platform
-=======
     Image, TextInput, ActivityIndicator, RefreshControl,
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 } from 'react-native';
 
 import { fetchProducts } from '../services/api';
@@ -16,28 +12,6 @@ export default function HomeScreen({ navigation }) {
     const { user, logout } = useAuth();
     const { cartCount } = useCart();
 
-<<<<<<< HEAD
-    const showAlert = (title, message) => {
-        if (Platform.OS === 'web') {
-            window.alert(`${title}\n${message}`);
-        } else {
-            Alert.alert(title, message);
-        }
-    };
-
-    const showConfirm = (title, message, onConfirm) => {
-        if (Platform.OS === 'web') {
-            if (window.confirm(`${title}\n${message}`)) onConfirm();
-        } else {
-            Alert.alert(title, message, [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'OK', onPress: onConfirm }
-            ]);
-        }
-    };
-
-=======
->>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
     // 🛠️ ADMIN MODE
     const isAdmin = user?.isAdmin === true;
 
