@@ -93,6 +93,18 @@ export default function ProductDetailsScreen({ route, navigation }) {
         return <ActivityIndicator style={{ flex: 1 }} size="large" color="#1a1a1a" />;
     }
 
+    if (!product) {
+        return (
+            <View style={styles.errorContainer}>
+                <Text style={styles.errorTitle}>Product not found</Text>
+                <Text style={styles.errorText}>Please check your connection and try again.</Text>
+                <TouchableOpacity style={styles.errorBtn} onPress={() => navigation.goBack()}>
+                    <Text style={styles.btnText}>Go Back</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
     const sizeArray = product?.size || product?.sizes || [];
 
     return (
@@ -248,6 +260,16 @@ export default function ProductDetailsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
     wrapper: { flex: 1, backgroundColor: '#f5f5f5' },
     container: { flex: 1 },
+    errorContainer: {
+        flex: 1, alignItems: 'center', justifyContent: 'center',
+        backgroundColor: '#f5f5f5', padding: 24,
+    },
+    errorTitle: { fontSize: 20, fontWeight: '800', color: '#1a1a1a', marginBottom: 8 },
+    errorText: { fontSize: 14, color: '#555', textAlign: 'center', marginBottom: 18 },
+    errorBtn: {
+        backgroundColor: '#1a1a1a', paddingVertical: 12,
+        paddingHorizontal: 24, borderRadius: 12,
+    },
     image: { width: '100%', height: 320 },
     backCircle: {
         position: 'absolute', top: 48, left: 16,
