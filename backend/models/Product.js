@@ -52,6 +52,10 @@ const productSchema = new mongoose.Schema({
         type: Number,
         default: undefined,
     },
+    discountPercent: {
+        type: Number,
+        default: 0,
+    },
     rating: {
         type: Number,
         default: undefined,

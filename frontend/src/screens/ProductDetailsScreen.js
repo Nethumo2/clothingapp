@@ -22,10 +22,21 @@ const showAlert = (title, message) => {
 };
 
 const getDiscountPercent = (product) => {
+    const directDiscount = Number(product?.discountPercent);
+    if (Number.isFinite(directDiscount) && directDiscount > 0) {
+        return Math.round(directDiscount);
+    }
+
     const price = Number(product?.price);
     const comparePrice = Number(product?.comparePrice);
     if (!Number.isFinite(price) || !Number.isFinite(comparePrice) || comparePrice <= price) return 0;
     return Math.round(((comparePrice - price) / comparePrice) * 100);
+};
+
+const hasComparePrice = (product) => {
+    const price = Number(product?.price);
+    const comparePrice = Number(product?.comparePrice);
+    return Number.isFinite(price) && Number.isFinite(comparePrice) && comparePrice > price;
 };
 
 const isNewArrival = (product) => {
@@ -154,7 +165,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
                     <Text style={styles.name}>{product.name}</Text>
                     <View style={styles.priceRow}>
                         <Text style={styles.price}>LKR {Number(product.price).toLocaleString()}</Text>
-                        {discountPercent > 0 && (
+                        {hasComparePrice(product) && (
                             <Text style={styles.comparePrice}>
                                 LKR {Number(product.comparePrice).toLocaleString()}
                             </Text>

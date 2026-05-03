@@ -16,7 +16,7 @@ const showAlert = (title, message) => {
 export default function AddProductScreen({ navigation }) {
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
-    const [comparePrice, setComparePrice] = useState('');
+    const [discountPercent, setDiscountPercent] = useState('');
     const [category, setCategory] = useState('');
     const [description, setDescription] = useState('');
     const [countInStock, setCountInStock] = useState('');
@@ -34,7 +34,7 @@ export default function AddProductScreen({ navigation }) {
             await createProduct({
                 name,
                 price,
-                comparePrice: comparePrice.trim() ? comparePrice : null,
+                discountPercent: discountPercent.trim() ? discountPercent : 0,
                 category,
                 description,
                 countInStock: countInStock || 0,
@@ -78,16 +78,16 @@ export default function AddProductScreen({ navigation }) {
                     onChangeText={setPrice}
                 />
 
-                <Text style={styles.label}>Original Price / Compare Price</Text>
+                <Text style={styles.label}>Discount (%)</Text>
                 <TextInput
                     style={styles.input}
-                    placeholder="e.g. 2000, leave empty if no sale"
+                    placeholder="e.g. 20, leave empty if no discount"
                     keyboardType="numeric"
-                    value={comparePrice}
-                    onChangeText={setComparePrice}
+                    value={discountPercent}
+                    onChangeText={setDiscountPercent}
                 />
                 <Text style={styles.hint}>
-                    If this is higher than Price, the item appears in Sales with a discount badge.
+                    Add a percentage to show this item in Discounts.
                 </Text>
 
                 <Text style={styles.label}>Category *</Text>

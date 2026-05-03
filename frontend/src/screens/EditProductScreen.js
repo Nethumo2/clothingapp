@@ -18,7 +18,7 @@ export default function EditProductScreen({ route, navigation }) {
 
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
-    const [comparePrice, setComparePrice] = useState('');
+    const [discountPercent, setDiscountPercent] = useState('');
     const [category, setCategory] = useState('');
     const [description, setDescription] = useState('');
     const [countInStock, setCountInStock] = useState('');
@@ -33,7 +33,7 @@ export default function EditProductScreen({ route, navigation }) {
                 const data = await fetchProductById(productId);
                 setName(data.name || '');
                 setPrice(String(data.price || ''));
-                setComparePrice(data.comparePrice ? String(data.comparePrice) : '');
+                setDiscountPercent(data.discountPercent ? String(data.discountPercent) : '');
 
                 setCategory(data.category?.toString() || '');
                 setDescription(data.description || '');
@@ -68,7 +68,7 @@ export default function EditProductScreen({ route, navigation }) {
             await updateProduct(productId, {
                 name,
                 price,
-                comparePrice: comparePrice.trim() ? comparePrice : null,
+                discountPercent: discountPercent.trim() ? discountPercent : 0,
                 category,
                 description,
                 countInStock,
@@ -104,16 +104,16 @@ export default function EditProductScreen({ route, navigation }) {
                 <Text style={styles.label}>Price (LKR) *</Text>
                 <TextInput style={styles.input} keyboardType="numeric" value={price} onChangeText={setPrice} />
 
-                <Text style={styles.label}>Original Price / Compare Price</Text>
+                <Text style={styles.label}>Discount (%)</Text>
                 <TextInput
                     style={styles.input}
                     keyboardType="numeric"
-                    value={comparePrice}
-                    onChangeText={setComparePrice}
-                    placeholder="Leave empty if no sale"
+                    value={discountPercent}
+                    onChangeText={setDiscountPercent}
+                    placeholder="Leave empty if no discount"
                 />
                 <Text style={styles.hint}>
-                    Set this higher than Price to show this item in Sales.
+                    Add a percentage to show this item in Discounts.
                 </Text>
 
                 <Text style={styles.label}>Category</Text>

@@ -30,10 +30,21 @@ export default function HomeScreen({ navigation }) {
     };
 
     const getDiscountPercent = (product) => {
+        const directDiscount = Number(product.discountPercent);
+        if (Number.isFinite(directDiscount) && directDiscount > 0) {
+            return Math.round(directDiscount);
+        }
+
         const price = Number(product.price);
         const comparePrice = Number(product.comparePrice);
         if (!Number.isFinite(price) || !Number.isFinite(comparePrice) || comparePrice <= price) return 0;
         return Math.round(((comparePrice - price) / comparePrice) * 100);
+    };
+
+    const hasComparePrice = (product) => {
+        const price = Number(product.price);
+        const comparePrice = Number(product.comparePrice);
+        return Number.isFinite(price) && Number.isFinite(comparePrice) && comparePrice > price;
     };
 
     const getSearchText = (product) => [
@@ -276,7 +287,7 @@ export default function HomeScreen({ navigation }) {
             const matchesFilter =
                 productFilter === 'new'
                     ? isNewArrival(p)
-                    : productFilter === 'sales'
+                    : productFilter === 'discounts'
                         ? getDiscountPercent(p) > 0
                         : true;
             return matchesSearch && matchesFilter;
@@ -317,7 +328,7 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.cardCategory}>{item.category}</Text>
                     <View style={styles.priceRow}>
                         <Text style={styles.cardPrice}>LKR {Number(item.price).toLocaleString()}</Text>
-                        {discountPercent > 0 && (
+                        {hasComparePrice(item) && (
                             <Text style={styles.comparePrice}>
                                 LKR {Number(item.comparePrice).toLocaleString()}
                             </Text>
@@ -385,7 +396,7 @@ export default function HomeScreen({ navigation }) {
                 {[
                     { key: 'all', label: 'All' },
                     { key: 'new', label: 'New Arrivals' },
-                    { key: 'sales', label: 'Sales' },
+                    { key: 'discounts', label: 'Discounts' },
                 ].map((item) => (
                     <TouchableOpacity
                         key={item.key}
