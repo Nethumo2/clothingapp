@@ -26,6 +26,22 @@ const loadCategoryMap = async (products) => {
     return new Map(categories.map((category) => [category._id.toString(), category]));
 };
 
+const normalizeDiscountPercent = (discountPercent, discount, price, comparePrice) => {
+    const directDiscount = Number(discountPercent ?? discount);
+    if (Number.isFinite(directDiscount) && directDiscount > 0) {
+        return Math.min(Math.round(directDiscount), 99);
+    }
+
+    const productPrice = Number(price);
+    const originalPrice = Number(comparePrice);
+
+    if (Number.isFinite(productPrice) && Number.isFinite(originalPrice) && originalPrice > productPrice) {
+        return Math.min(Math.round(((originalPrice - productPrice) / originalPrice) * 100), 99);
+    }
+
+    return 0;
+};
+
 const normalize = (product, categoryMap = new Map()) => {
     const obj = product.toObject ? product.toObject() : { ...product };
     const categoryId = getCategoryId(obj.category);
@@ -37,7 +53,12 @@ const normalize = (product, categoryMap = new Map()) => {
     obj.images = obj.images || [obj.imageUrl];
     obj.countInStock = obj.countInStock ?? obj.stock ?? 0;
     obj.stock = obj.stock ?? obj.countInStock ?? 0;
-    obj.discountPercent = Number(obj.discountPercent || 0);
+    obj.discountPercent = normalizeDiscountPercent(
+        obj.discountPercent,
+        obj.discount,
+        obj.price,
+        obj.comparePrice
+    );
     obj.categoryId = categoryId;
     obj.category = category?.name || obj.category?.name || categoryId || '';
     obj.categoryImage = category?.image || '';
@@ -80,7 +101,7 @@ router.get('/:id', async (req, res) => {
 // @access  Private/Admin
 router.post('/', protect, admin, async (req, res) => {
     try {
-        const { name, price, comparePrice, discountPercent, size, sizes, category, countInStock, stock, description, imageUrl, images } = req.body;
+        const { name, price, comparePrice, discountPercent, discount, size, sizes, category, countInStock, stock, description, imageUrl, images } = req.body;
         const productSizes = size || sizes || [];
         const productImages = images || (imageUrl ? [imageUrl] : undefined);
 
@@ -88,7 +109,7 @@ router.post('/', protect, admin, async (req, res) => {
             name,
             price,
             comparePrice,
-            discountPercent: Number(discountPercent || 0),
+            discountPercent: normalizeDiscountPercent(discountPercent, discount, price, comparePrice),
             description,
             size: typeof productSizes === 'string' ? productSizes.split(',').map((s) => s.trim()) : productSizes,
             sizes: typeof productSizes === 'string' ? productSizes.split(',').map((s) => s.trim()) : productSizes,
@@ -111,14 +132,21 @@ router.post('/', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.put('/:id', protect, admin, async (req, res) => {
     try {
-        const { name, price, comparePrice, discountPercent, size, sizes, category, description, countInStock, stock, imageUrl, images } = req.body;
+        const { name, price, comparePrice, discountPercent, discount, size, sizes, category, description, countInStock, stock, imageUrl, images } = req.body;
         const product = await Product.findById(req.params.id);
 
         if (product) {
             product.name = name || product.name;
             product.price = price || product.price;
             product.comparePrice = comparePrice !== undefined ? comparePrice : product.comparePrice;
-            product.discountPercent = discountPercent !== undefined ? Number(discountPercent || 0) : product.discountPercent;
+            if (discountPercent !== undefined || discount !== undefined || comparePrice !== undefined) {
+                product.discountPercent = normalizeDiscountPercent(
+                    discountPercent,
+                    discount,
+                    price || product.price,
+                    comparePrice !== undefined ? comparePrice : product.comparePrice
+                );
+            }
             product.description = description || product.description;
             product.countInStock = countInStock !== undefined ? countInStock : (stock !== undefined ? stock : product.countInStock);
             product.stock = stock !== undefined ? stock : (countInStock !== undefined ? countInStock : product.stock);

@@ -30,7 +30,7 @@ export default function HomeScreen({ navigation }) {
     };
 
     const getDiscountPercent = (product) => {
-        const directDiscount = Number(product.discountPercent);
+        const directDiscount = Number(product.discountPercent ?? product.discount);
         if (Number.isFinite(directDiscount) && directDiscount > 0) {
             return Math.round(directDiscount);
         }
