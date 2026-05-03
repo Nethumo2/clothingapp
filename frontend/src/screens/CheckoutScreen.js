@@ -29,6 +29,7 @@ export default function CheckoutScreen({ route, navigation }) {
     if (!address.trim()) { showAlert('Error', 'Please enter your address'); return false; }
     if (!city.trim()) { showAlert('Error', 'Please enter your city'); return false; }
     if (!phoneNumber.trim() || phoneNumber.length < 9) { showAlert('Error', 'Please enter a valid phone number'); return false; }
+    if (!items.length) { showAlert('Error', 'Your cart is empty'); return false; }
     return true;
   };
 
@@ -37,17 +38,18 @@ export default function CheckoutScreen({ route, navigation }) {
     setLoading(true);
     try {
       const orderItems = (cart?.items || []).map((item) => ({
-        name: item.product?.name,
-        qty: item.quantity,
-        image: item.product?.imageUrl,
-        price: item.product?.price,
+        qty: Number(item.quantity || 0),
         product: item.product?._id,
-      }));
+      })).filter((item) => item.product && item.qty > 0);
+
+      if (orderItems.length === 0) {
+        showAlert('Error', 'Your cart does not have valid items');
+        return;
+      }
 
       const orderData = {
         orderItems,
         shippingAddress: { fullName, address, city, phoneNumber },
-        totalPrice: cart?.totalPrice || 0,
       };
 
       const result = await createOrder(orderData);
@@ -60,14 +62,20 @@ export default function CheckoutScreen({ route, navigation }) {
       } else {
         showAlert('Error', result.message || 'Failed to place order');
       }
-    } catch (_e) {
-      showAlert('Error', 'Something went wrong. Please try again.');
+    } catch (e) {
+      showAlert('Error', e.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const items = cart?.items || [];
+  const getLineTotal = (item) => {
+    const price = Number(item.product?.price);
+    const quantity = Number(item.quantity);
+    return Number.isFinite(price) && Number.isFinite(quantity) ? price * quantity : 0;
+  };
+  const orderTotal = items.reduce((total, item) => total + getLineTotal(item), 0);
 
   return (
     <KeyboardAvoidingView
@@ -91,13 +99,13 @@ export default function CheckoutScreen({ route, navigation }) {
                 {item.product?.name} ({item.size}) x {item.quantity}
               </Text>
               <Text style={styles.summaryPrice}>
-                LKR {(item.product?.price * item.quantity).toLocaleString()}
+                LKR {getLineTotal(item).toLocaleString()}
               </Text>
             </View>
           ))}
           <View style={[styles.summaryRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>LKR {Number(cart?.totalPrice || 0).toLocaleString()}</Text>
+            <Text style={styles.totalValue}>LKR {orderTotal.toLocaleString()}</Text>
           </View>
         </View>
 
@@ -154,7 +162,7 @@ export default function CheckoutScreen({ route, navigation }) {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.placeOrderBtnText}>
-              Place Order - LKR {Number(cart?.totalPrice || 0).toLocaleString()}
+              Place Order - LKR {orderTotal.toLocaleString()}
             </Text>
           )}
         </TouchableOpacity>

@@ -1,22 +1,65 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 const { protect, admin } = require('../middleware/auth');
+
+const toValidQuantity = (quantity) => {
+  const value = Number(quantity);
+  return Number.isInteger(value) && value > 0 ? value : 0;
+};
+
+const toValidPrice = (price) => {
+  const value = Number(price);
+  return Number.isFinite(value) && value >= 0 ? value : 0;
+};
 
 // @route   POST /api/orders
 // @desc    Create new order
 // @access  Private
 router.post('/', protect, async (req, res) => {
   try {
-    const { orderItems, shippingAddress, totalPrice } = req.body;
+    const { orderItems, shippingAddress } = req.body;
 
-    if (orderItems && orderItems.length === 0) {
+    if (!Array.isArray(orderItems) || orderItems.length === 0) {
       return res.status(400).json({ message: 'No order items' });
     }
 
+    const cleanedOrderItems = [];
+
+    for (const item of orderItems) {
+      const productId = item.product || item.productId;
+      const quantity = toValidQuantity(item.qty || item.quantity);
+
+      if (!productId || quantity < 1) {
+        return res.status(400).json({ message: 'Invalid order item' });
+      }
+
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+
+      const price = toValidPrice(product.price);
+
+      cleanedOrderItems.push({
+        name: product.name,
+        qty: quantity,
+        image: product.imageUrl,
+        price,
+        product: product._id,
+      });
+    }
+
+    const totalPrice = cleanedOrderItems.reduce(
+      (total, item) => total + item.price * item.qty,
+      0
+    );
+
     const order = new Order({
       user: req.user._id,
-      orderItems,
+      orderItems: cleanedOrderItems,
       shippingAddress,
       totalPrice,
     });
