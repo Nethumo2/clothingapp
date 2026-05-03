@@ -9,8 +9,14 @@ const populateCart = (cartId) => Cart.findById(cartId).populate('items.product')
 
 const recalculateTotal = (items) => {
     return items.reduce((total, item) => {
-        const price = Number(item.product?.price || 0);
-        return total + price * Number(item.quantity || 0);
+        const price = Number(item.product?.price);
+        const quantity = Number(item.quantity);
+
+        if (!Number.isFinite(price) || !Number.isFinite(quantity)) {
+            return total;
+        }
+
+        return total + price * quantity;
     }, 0);
 };
 
@@ -22,6 +28,10 @@ router.get('/', protect, async (req, res) => {
         let cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
         if (!cart) {
             cart = await Cart.create({ user: req.user._id, items: [], totalPrice: 0 });
+        } else if (!Number.isFinite(Number(cart.totalPrice))) {
+            cart.totalPrice = recalculateTotal(cart.items);
+            await cart.save();
+            cart = await populateCart(cart._id);
         }
         res.json(cart);
     } catch (error) {
@@ -64,6 +74,7 @@ router.post('/add', protect, async (req, res) => {
             cart.items.push({ product: productId, quantity: cartQuantity, size: itemSize });
         }
 
+        cart.totalPrice = 0;
         await cart.save();
 
         cart = await populateCart(cart._id);
