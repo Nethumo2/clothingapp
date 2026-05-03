@@ -14,6 +14,12 @@ const toValidPrice = (price) => {
   return Number.isFinite(value) && value >= 0 ? value : 0;
 };
 
+const firstImage = (images) => {
+  if (!Array.isArray(images) || images.length === 0) return '';
+  const image = images[0];
+  return image?.url || image?.src || image;
+};
+
 // @route   POST /api/orders
 // @desc    Create new order
 // @access  Private
@@ -46,7 +52,7 @@ router.post('/', protect, async (req, res) => {
       cleanedOrderItems.push({
         name: product.name,
         qty: quantity,
-        image: product.imageUrl,
+        image: product.imageUrl || firstImage(product.images),
         price,
         product: product._id,
       });

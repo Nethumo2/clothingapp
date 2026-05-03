@@ -11,10 +11,16 @@ const productSchema = new mongoose.Schema({
     },
     size: {
         type: [String],
-        required: true,
+        required: false,
+        default: undefined,
+    },
+    sizes: {
+        type: [String],
+        required: false,
+        default: undefined,
     },
     category: {
-        type: String,
+        type: mongoose.Schema.Types.Mixed,
         required: true,
     },
     imageUrl: {
@@ -22,14 +28,53 @@ const productSchema = new mongoose.Schema({
         required: false,
         default: 'https://via.placeholder.com/300x300?text=No+Image',
     },
+    images: {
+        type: [mongoose.Schema.Types.Mixed],
+        required: false,
+        default: undefined,
+    },
+    colors: {
+        type: [String],
+        required: false,
+        default: undefined,
+    },
     description: {
         type: String
     },
     countInStock: {
         type: Number, default: 0
     },
+    stock: {
+        type: Number,
+        default: undefined,
+    },
+    comparePrice: {
+        type: Number,
+        default: undefined,
+    },
+    rating: {
+        type: Number,
+        default: undefined,
+    },
+    numReviews: {
+        type: Number,
+        default: undefined,
+    },
+    featured: {
+        type: Boolean,
+        default: false,
+    },
+    isActive: {
+        type: Boolean,
+        default: true,
+    },
+    reviews: {
+        type: [mongoose.Schema.Types.Mixed],
+        default: undefined,
+    },
 }, {
     timestamps: true,
+    strict: false,
 });
 
 const Product = mongoose.model('Product', productSchema);

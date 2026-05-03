@@ -1,6 +1,7 @@
 const express = require('express');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -10,6 +11,56 @@ const populateCart = (cartId) => Cart.findById(cartId).populate('items.product')
 const getProductId = (item) => {
     const product = item.product;
     return (product?._id || product)?.toString();
+};
+
+const getCategoryId = (category) => {
+    if (!category) return '';
+    if (typeof category === 'object') return (category._id || category)?.toString();
+    return category.toString();
+};
+
+const firstImage = (images) => {
+    if (!Array.isArray(images) || images.length === 0) return '';
+    const image = images[0];
+    return image?.url || image?.src || image;
+};
+
+const normalizeProduct = (product, categoryMap) => {
+    if (!product) return null;
+
+    const obj = product.toObject ? product.toObject() : { ...product };
+    const categoryId = getCategoryId(obj.category);
+    const category = categoryMap.get(categoryId);
+
+    obj.size = obj.size || obj.sizes || [];
+    obj.sizes = obj.sizes || obj.size || [];
+    obj.imageUrl = obj.imageUrl || firstImage(obj.images) || 'https://via.placeholder.com/300x300?text=No+Image';
+    obj.images = obj.images || [obj.imageUrl];
+    obj.countInStock = obj.countInStock ?? obj.stock ?? 0;
+    obj.stock = obj.stock ?? obj.countInStock ?? 0;
+    obj.categoryId = categoryId;
+    obj.category = category?.name || obj.category?.name || categoryId || '';
+    return obj;
+};
+
+const toResponseCart = async (cart) => {
+    if (!cart) return null;
+
+    const obj = cart.toObject ? cart.toObject() : { ...cart };
+    const categoryIds = (obj.items || [])
+        .map((item) => getCategoryId(item.product?.category))
+        .filter((category) => category && /^[0-9a-fA-F]{24}$/.test(category));
+    const categories = await Category.find({ _id: { $in: categoryIds } }).lean();
+    const categoryMap = new Map(categories.map((category) => [category._id.toString(), category]));
+
+    obj.items = (obj.items || [])
+        .filter((item) => item.product)
+        .map((item) => ({
+            ...item,
+            product: normalizeProduct(item.product, categoryMap),
+        }));
+
+    return obj;
 };
 
 const recalculateTotal = (items) => {
@@ -58,7 +109,7 @@ router.get('/', protect, async (req, res) => {
             await cart.save();
             cart = await populateCart(cart._id);
         }
-        res.json(cart);
+        res.json(await toResponseCart(cart));
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -106,7 +157,7 @@ router.post('/add', protect, async (req, res) => {
         await cart.save();
 
         cart = await populateCart(cart._id);
-        res.json(cart);
+        res.json(await toResponseCart(cart));
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -141,7 +192,7 @@ router.put('/update/:itemId', protect, async (req, res) => {
         await cart.save();
 
         cart = await populateCart(cart._id);
-        res.json(cart);
+        res.json(await toResponseCart(cart));
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -163,7 +214,7 @@ router.delete('/remove/:itemId', protect, async (req, res) => {
                 await cart.save();
 
                 cart = await populateCart(cart._id);
-                res.json(cart);
+                res.json(await toResponseCart(cart));
             } else {
                 res.status(404).json({ message: 'Item not found in cart' });
             }
@@ -186,7 +237,7 @@ router.delete('/clear', protect, async (req, res) => {
             cart.totalPrice = 0;
             await cart.save();
             cart = await populateCart(cart._id);
-            return res.json(cart);
+            return res.json(await toResponseCart(cart));
         }
         res.json({ user: req.user._id, items: [], totalPrice: 0 });
     } catch (error) {
