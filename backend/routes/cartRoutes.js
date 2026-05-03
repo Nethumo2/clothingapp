@@ -1,8 +1,11 @@
 const express = require('express');
 const Cart = require('../models/Cart');
+const Product = require('../models/Product');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
+
+const populateCart = (cartId) => Cart.findById(cartId).populate('items.product');
 
 const recalculateTotal = (items) => {
     return items.reduce((total, item) => {
@@ -31,7 +34,18 @@ router.get('/', protect, async (req, res) => {
 // @access  Private
 router.post('/add', protect, async (req, res) => {
     try {
-        const { productId, quantity, size, price } = req.body;
+        const { productId, quantity, size } = req.body;
+        const cartQuantity = Number(quantity);
+
+        if (!Number.isInteger(cartQuantity) || cartQuantity < 1) {
+            return res.status(400).json({ message: 'Quantity must be at least 1' });
+        }
+
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
 
         let cart = await Cart.findOne({ user: req.user._id });
 
@@ -39,19 +53,23 @@ router.post('/add', protect, async (req, res) => {
             cart = new Cart({ user: req.user._id, items: [], totalPrice: 0 });
         }
 
-        const itemIndex = cart.items.findIndex((p) => p.product.toString() === productId && p.size === size);
+        const itemSize = size || '';
+        const itemIndex = cart.items.findIndex(
+            (p) => p.product.toString() === productId && (p.size || '') === itemSize
+        );
 
         if (itemIndex > -1) {
-            cart.items[itemIndex].quantity += Number(quantity);
+            cart.items[itemIndex].quantity += cartQuantity;
         } else {
-            cart.items.push({ product: productId, quantity: Number(quantity), size });
+            cart.items.push({ product: productId, quantity: cartQuantity, size: itemSize });
         }
-
-        cart.totalPrice += Number(price) * Number(quantity);
 
         await cart.save();
 
-        cart = await Cart.findById(cart._id).populate('items.product');
+        cart = await populateCart(cart._id);
+        cart.totalPrice = recalculateTotal(cart.items);
+        await cart.save();
+        cart = await populateCart(cart._id);
 
         res.json(cart);
     } catch (error) {
@@ -87,7 +105,7 @@ router.put('/update/:itemId', protect, async (req, res) => {
 
         await cart.save();
 
-        cart = await Cart.findById(cart._id).populate('items.product');
+        cart = await populateCart(cart._id);
         res.json(cart);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -109,7 +127,7 @@ router.delete('/remove/:itemId', protect, async (req, res) => {
                 cart.totalPrice = recalculateTotal(cart.items);
                 await cart.save();
 
-                cart = await Cart.findById(cart._id).populate('items.product');
+                cart = await populateCart(cart._id);
                 res.json(cart);
             } else {
                 res.status(404).json({ message: 'Item not found in cart' });
@@ -132,8 +150,10 @@ router.delete('/clear', protect, async (req, res) => {
             cart.items = [];
             cart.totalPrice = 0;
             await cart.save();
+            cart = await populateCart(cart._id);
+            return res.json(cart);
         }
-        res.json({ message: 'Cart cleared' });
+        res.json({ user: req.user._id, items: [], totalPrice: 0 });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

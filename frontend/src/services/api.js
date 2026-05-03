@@ -151,11 +151,11 @@ export const fetchCart = async () => {
     return handleResponse(res);
 };
 
-export const addToCart = async (productId, quantity, size, price) => {
+export const addToCart = async (productId, quantity, size) => {
     const res = await fetch(`${BASE_URL}/cart/add`, {
         method: 'POST',
         headers: await authHeaders(),
-        body: JSON.stringify({ productId, quantity, size, price }),
+        body: JSON.stringify({ productId, quantity, size }),
     });
 
     return handleResponse(res);

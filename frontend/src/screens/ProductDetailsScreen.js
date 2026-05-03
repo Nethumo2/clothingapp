@@ -35,6 +35,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showCartModal, setShowCartModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [addingToCart, setAddingToCart] = useState(false);
 
     useEffect(() => {
         const loadProduct = async () => {
@@ -69,12 +70,22 @@ export default function ProductDetailsScreen({ route, navigation }) {
     };
 
     const handleAddToCart = async () => {
+        const sizeArray = product?.size || product?.sizes || [];
+
+        if (sizeArray.length > 0 && !selectedSize) {
+            showAlert('Size Required', 'Please select a size before adding this item to cart');
+            return;
+        }
+
         try {
-            await addToCart(product._id, quantity, selectedSize, product.price);
+            setAddingToCart(true);
+            await addToCart(product._id, quantity, selectedSize);
             await refreshCart();
             setShowCartModal(true);
-        } catch (_e) {
-            showAlert('Error', 'Could not add to cart');
+        } catch (e) {
+            showAlert('Error', e.message || 'Could not add to cart');
+        } finally {
+            setAddingToCart(false);
         }
     };
 
@@ -171,8 +182,14 @@ export default function ProductDetailsScreen({ route, navigation }) {
 
                     {/* USER CONTROLS */}
                     {!isAdmin && (
-                        <TouchableOpacity style={styles.cartBtn} onPress={handleAddToCart}>
-                            <Text style={styles.btnText}>🛒 Add to Cart</Text>
+                        <TouchableOpacity
+                            style={[styles.cartBtn, addingToCart && { opacity: 0.65 }]}
+                            onPress={handleAddToCart}
+                            disabled={addingToCart}
+                        >
+                            <Text style={styles.btnText}>
+                                {addingToCart ? 'Adding...' : '🛒 Add to Cart'}
+                            </Text>
                         </TouchableOpacity>
                     )}
                 </View>

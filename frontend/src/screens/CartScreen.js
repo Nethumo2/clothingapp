@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   Image, ActivityIndicator, Alert, Platform,
 } from 'react-native';
 import { fetchCart, removeFromCart, clearCart, updateCartItem } from '../services/api';
 import { useCart } from '../context/CartContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 const showAlert = (title, message) => {
   if (Platform.OS === 'web') {
@@ -29,9 +30,11 @@ export default function CartScreen({ navigation }) {
   const { refreshCart } = useCart();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updatingItemId, setUpdatingItemId] = useState(null);
 
   const loadCart = async () => {
     try {
+      setLoading(true);
       const data = await fetchCart();
       setCart(data);
     } catch (e) {
@@ -41,15 +44,22 @@ export default function CartScreen({ navigation }) {
     }
   };
 
-  useEffect(() => { loadCart(); }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadCart();
+    }, [])
+  );
 
   const handleRemove = async (itemId) => {
     try {
+      setUpdatingItemId(itemId);
       const updated = await removeFromCart(itemId);
       setCart(updated);
       refreshCart();
     } catch (_e) {
       showAlert('Error', 'Failed to remove item');
+    } finally {
+      setUpdatingItemId(null);
     }
   };
 
@@ -60,60 +70,82 @@ export default function CartScreen({ navigation }) {
     }
 
     try {
+      setUpdatingItemId(item._id);
       const updated = await updateCartItem(item._id, nextQuantity);
       setCart(updated);
       refreshCart();
     } catch (_e) {
       showAlert('Error', 'Failed to update quantity');
+    } finally {
+      setUpdatingItemId(null);
     }
   };
 
   const handleClear = () => {
     showConfirm('Clear Cart', 'Remove all items from cart?', async () => {
-      await clearCart();
-      await loadCart();
-      refreshCart();
+      try {
+        const updated = await clearCart();
+        setCart(updated);
+        refreshCart();
+      } catch (_e) {
+        showAlert('Error', 'Failed to clear cart');
+      }
     });
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.cartItem}>
-      <Image
-        source={{ uri: item.product?.imageUrl || 'https://via.placeholder.com/80x80?text=Item' }}
-        style={styles.itemImage}
-        resizeMode="cover"
-      />
-      <View style={styles.itemInfo}>
-        <Text style={styles.itemName} numberOfLines={2}>{item.product?.name}</Text>
-        <Text style={styles.itemSize}>Size: {item.size}</Text>
-        <View style={styles.quantityRow}>
-          <TouchableOpacity
-            style={styles.quantityBtn}
-            onPress={() => handleQuantityChange(item, item.quantity - 1)}
-          >
-            <Text style={styles.quantityBtnText}>-</Text>
-          </TouchableOpacity>
-          <Text style={styles.itemQty}>{item.quantity}</Text>
-          <TouchableOpacity
-            style={styles.quantityBtn}
-            onPress={() => handleQuantityChange(item, item.quantity + 1)}
-          >
-            <Text style={styles.quantityBtnText}>+</Text>
-          </TouchableOpacity>
+  const renderItem = ({ item }) => {
+    const product = item.product || {};
+    const quantity = Number(item.quantity || 0);
+    const unitPrice = Number(product.price || 0);
+    const lineTotal = unitPrice * quantity;
+    const isUpdating = updatingItemId === item._id;
+
+    return (
+      <View style={styles.cartItem}>
+        <Image
+          source={{ uri: product.imageUrl || 'https://via.placeholder.com/80x80?text=Item' }}
+          style={styles.itemImage}
+          resizeMode="cover"
+        />
+        <View style={styles.itemInfo}>
+          <Text style={styles.itemName} numberOfLines={2}>{product.name || 'Product unavailable'}</Text>
+          <Text style={styles.itemMeta}>Category: {product.category || 'N/A'}</Text>
+          <Text style={styles.itemMeta}>Size: {item.size || 'N/A'}</Text>
+          <Text style={styles.itemMeta}>Unit: LKR {unitPrice.toLocaleString()}</Text>
+          <View style={styles.quantityRow}>
+            <TouchableOpacity
+              style={[styles.quantityBtn, isUpdating && styles.disabledBtn]}
+              onPress={() => handleQuantityChange(item, quantity - 1)}
+              disabled={isUpdating}
+            >
+              <Text style={styles.quantityBtnText}>-</Text>
+            </TouchableOpacity>
+            <Text style={styles.itemQty}>{quantity}</Text>
+            <TouchableOpacity
+              style={[styles.quantityBtn, isUpdating && styles.disabledBtn]}
+              onPress={() => handleQuantityChange(item, quantity + 1)}
+              disabled={isUpdating}
+            >
+              <Text style={styles.quantityBtnText}>+</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.itemPrice}>Line total: LKR {lineTotal.toLocaleString()}</Text>
         </View>
-        <Text style={styles.itemPrice}>
-          LKR {(Number(item.product?.price) * item.quantity).toLocaleString()}
-        </Text>
+        <TouchableOpacity
+          style={[styles.removeBtn, isUpdating && styles.disabledBtn]}
+          onPress={() => handleRemove(item._id)}
+          disabled={isUpdating}
+        >
+          <Text style={styles.removeBtnText}>x</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.removeBtn} onPress={() => handleRemove(item._id)}>
-        <Text style={styles.removeBtnText}>x</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   if (loading) return <ActivityIndicator size="large" color="#1a1a1a" style={styles.loader} />;
 
   const items = cart?.items || [];
+  const quantityTotal = items.reduce((total, item) => total + Number(item.quantity || 0), 0);
 
   return (
     <View style={styles.container}>
@@ -147,7 +179,7 @@ export default function CartScreen({ navigation }) {
           />
           <View style={styles.footer}>
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Total ({items.length} items)</Text>
+              <Text style={styles.totalLabel}>Total ({quantityTotal} items)</Text>
               <Text style={styles.totalValue}>LKR {Number(cart?.totalPrice || 0).toLocaleString()}</Text>
             </View>
             <TouchableOpacity
@@ -182,13 +214,14 @@ const styles = StyleSheet.create({
   itemImage: { width: 80, height: 80, borderRadius: 10 },
   itemInfo: { flex: 1, marginLeft: 12 },
   itemName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
-  itemSize: { fontSize: 12, color: '#888' },
+  itemMeta: { fontSize: 12, color: '#777', marginTop: 2 },
   quantityRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   quantityBtn: {
     width: 28, height: 28, borderRadius: 8,
     backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center',
   },
   quantityBtnText: { fontSize: 16, fontWeight: '800', color: '#1a1a1a' },
+  disabledBtn: { opacity: 0.45 },
   itemQty: { minWidth: 32, textAlign: 'center', fontSize: 14, fontWeight: '800', color: '#1a1a1a' },
   itemPrice: { fontSize: 15, fontWeight: '800', color: '#e63946', marginTop: 4 },
   removeBtn: {

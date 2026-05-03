@@ -4,6 +4,10 @@ import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
+const getCartCount = (items = []) => (
+  items.reduce((total, item) => total + Number(item.quantity || 0), 0)
+);
+
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
   const [cart, setCart] = useState(null);
@@ -22,7 +26,7 @@ export const CartProvider = ({ children }) => {
     try {
       const data = await fetchCart();
       setCart(data);
-      setCartCount(data?.items?.length || 0);
+      setCartCount(getCartCount(data?.items));
     } catch (e) {
       console.log('Cart load error', e);
     }
