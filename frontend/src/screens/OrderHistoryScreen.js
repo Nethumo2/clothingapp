@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
+<<<<<<< HEAD
   ActivityIndicator, RefreshControl, Alert, Platform
 } from 'react-native';
 import { fetchMyOrders } from '../services/api';
@@ -24,6 +25,12 @@ const showConfirm = (title, message, onConfirm) => {
     }
 };
 
+=======
+  ActivityIndicator, RefreshControl,
+} from 'react-native';
+import { fetchMyOrders } from '../services/api';
+
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 const STATUS_COLORS = {
   Pending: '#f39c12',
   Processing: '#3498db',

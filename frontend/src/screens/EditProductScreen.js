@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity,
+<<<<<<< HEAD
     StyleSheet, ActivityIndicator, ScrollView, Image, Alert, Platform
 } from 'react-native';
 import { fetchProductById, updateProduct } from '../services/api';
@@ -24,6 +25,12 @@ const showConfirm = (title, message, onConfirm) => {
     }
 };
 
+=======
+    StyleSheet, ActivityIndicator, Alert, ScrollView, Image
+} from 'react-native';
+import { fetchProductById, updateProduct } from '../services/api';
+
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 export default function EditProductScreen({ route, navigation }) {
     const { productId } = route.params;
 
@@ -66,7 +73,11 @@ export default function EditProductScreen({ route, navigation }) {
             setImageUrl(img);
 
         } catch (e) {
+<<<<<<< HEAD
             showAlert('Error', 'Failed to load product');
+=======
+            Alert.alert('Error', 'Failed to load product');
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
         } finally {
             setFetching(false);
         }
@@ -74,7 +85,11 @@ export default function EditProductScreen({ route, navigation }) {
 
     const handleSubmit = async () => {
         if (!name || !price || !size) {
+<<<<<<< HEAD
             showAlert('Error', 'Please fill name, price and size');
+=======
+            Alert.alert('Error', 'Please fill name, price and size');
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
             return;
         }
         setLoading(true);
@@ -88,10 +103,18 @@ export default function EditProductScreen({ route, navigation }) {
                 size,
                 imageUrl,
             });
+<<<<<<< HEAD
             showAlert('Success', 'Product updated!');
             navigation.navigate('Home');
         } catch (e) {
             showAlert(e.message || 'Failed to update product');
+=======
+            Alert.alert('Success', 'Product updated!', [
+                { text: 'OK', onPress: () => navigation.goBack() }
+            ]);
+        } catch (e) {
+            Alert.alert('Error', e.message || 'Failed to update product');
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
         } finally {
             setLoading(false);
         }

@@ -1,7 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ─── BASE URL ─────────────────────────────────────────────
+<<<<<<< HEAD
 const BASE_URL = 'http://10.92.115.223:5000/api';
+=======
+const BASE_URL = 'http://10.119.32.223:5000/api';
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 // const BASE_URL = 'https://your-backend.onrender.com/api';
 
 // ─── TOKEN HELPERS ────────────────────────────────────────

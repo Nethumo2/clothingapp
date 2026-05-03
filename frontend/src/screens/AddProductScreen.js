@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Alert, Platform
+=======
+import {
+    View, Text, TextInput, TouchableOpacity,
+    StyleSheet, ActivityIndicator, Alert, ScrollView, Image
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 } from 'react-native';
 import { createProduct } from '../services/api';
 
@@ -13,6 +19,7 @@ export default function AddProductScreen({ navigation }) {
     const [imageUrl, setImageUrl] = useState('');
     const [loading, setLoading] = useState(false);
 
+<<<<<<< HEAD
     const showAlert = (title, message) => {
         if (Platform.OS === 'web') {
             window.alert(`${title}\n${message}`);
@@ -35,6 +42,11 @@ export default function AddProductScreen({ navigation }) {
     const handleSubmit = async () => {
         if (!name || !price || !category || !size) {
             showAlert('Please fill name, price, category and size');
+=======
+    const handleSubmit = async () => {
+        if (!name || !price || !category || !size) {
+            Alert.alert('Error', 'Please fill name, price, category and size');
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
             return;
         }
         setLoading(true);
@@ -48,10 +60,18 @@ export default function AddProductScreen({ navigation }) {
                 size,
                 imageUrl: imageUrl || 'https://via.placeholder.com/300x300?text=No+Image',
             });
+<<<<<<< HEAD
             showAlert('Product added!');
             navigation.navigate('Home');
         } catch (e) {
             showAlert('Error', e.message || 'Failed to add product');
+=======
+            Alert.alert('Success', 'Product added!', [
+                { text: 'OK', onPress: () => navigation.goBack() }
+            ]);
+        } catch (e) {
+            Alert.alert('Error', e.message || 'Failed to add product');
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
         } finally {
             setLoading(false);
         }

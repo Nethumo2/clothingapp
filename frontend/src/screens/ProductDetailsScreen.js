@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, Image, TouchableOpacity, StyleSheet,
+<<<<<<< HEAD
     ScrollView, ActivityIndicator, Modal, Alert, Platform
+=======
+    ScrollView, ActivityIndicator, Modal
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 } from 'react-native';
 
 import {
@@ -13,6 +17,7 @@ import {
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
+<<<<<<< HEAD
 const showAlert = (title, message) => {
     if (Platform.OS === 'web') {
         window.alert(`${title}\n${message}`);
@@ -32,6 +37,8 @@ const showConfirm = (title, message, onConfirm) => {
     }
 };
 
+=======
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 export default function ProductDetailsScreen({ route, navigation }) {
     const { productId } = route.params;
     const { refreshCart } = useCart();
@@ -58,7 +65,11 @@ export default function ProductDetailsScreen({ route, navigation }) {
             const sizeArray = data?.size || data?.sizes || [];
             if (sizeArray.length > 0) setSelectedSize(sizeArray[0]);
         } catch (e) {
+<<<<<<< HEAD
             showAlert('Error', 'Failed to load product');
+=======
+            window.alert('Failed to load product');
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
         } finally {
             setLoading(false);
         }
@@ -73,7 +84,11 @@ export default function ProductDetailsScreen({ route, navigation }) {
             navigation.goBack();
         } catch (err) {
             setShowDeleteModal(false);
+<<<<<<< HEAD
             showAlert('Error: ' + (err.message || 'Delete failed'));
+=======
+            window.alert('Error: ' + (err.message || 'Delete failed'));
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
         } finally {
             setDeleting(false);
         }
@@ -85,7 +100,11 @@ export default function ProductDetailsScreen({ route, navigation }) {
             await refreshCart();
             setShowCartModal(true);
         } catch (e) {
+<<<<<<< HEAD
             showAlert('Error', 'Could not add to cart');
+=======
+            window.alert('Could not add to cart');
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
         }
     };
 

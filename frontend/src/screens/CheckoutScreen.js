@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
+<<<<<<< HEAD
   ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
+=======
+  ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 } from 'react-native';
 import { createOrder, clearCart } from '../services/api';
 import { useCart } from '../context/CartContext';
 
+<<<<<<< HEAD
 const showAlert = (title, message) => {
     if (Platform.OS === 'web') {
         window.alert(`${title}\n${message}`);
@@ -25,6 +30,8 @@ const showConfirm = (title, message, onConfirm) => {
     }
 };
 
+=======
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 export default function CheckoutScreen({ route, navigation }) {
   const { cart } = route.params || {};
   const { refreshCart } = useCart();
@@ -36,10 +43,17 @@ export default function CheckoutScreen({ route, navigation }) {
   const [phoneNumber, setPhoneNumber] = useState('');
 
   const validate = () => {
+<<<<<<< HEAD
     if (!fullName.trim()) { showAlert('Error', 'Please enter your full name'); return false; }
     if (!address.trim()) { showAlert('Error', 'Please enter your address'); return false; }
     if (!city.trim()) { showAlert('Error', 'Please enter your city'); return false; }
     if (!phoneNumber.trim() || phoneNumber.length < 9) { showAlert('Error', 'Please enter a valid phone number'); return false; }
+=======
+    if (!fullName.trim()) { Alert.alert('Error', 'Please enter your full name'); return false; }
+    if (!address.trim()) { Alert.alert('Error', 'Please enter your address'); return false; }
+    if (!city.trim()) { Alert.alert('Error', 'Please enter your city'); return false; }
+    if (!phoneNumber.trim() || phoneNumber.length < 9) { Alert.alert('Error', 'Please enter a valid phone number'); return false; }
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
     return true;
   };
 
@@ -63,6 +77,7 @@ export default function CheckoutScreen({ route, navigation }) {
 
       const result = await createOrder(orderData);
 
+<<<<<<< HEAD
         if (result._id) {
             await clearCart();
             refreshCart();
@@ -73,6 +88,21 @@ export default function CheckoutScreen({ route, navigation }) {
       }
     } catch (e) {
         showAlert('Error', 'Something went wrong. Please try again.');
+=======
+      if (result._id) {
+        await clearCart();
+        refreshCart();
+        Alert.alert(
+          '🎉 Order Placed!',
+          `Your order has been placed successfully.\nOrder ID: ${result._id.slice(-8).toUpperCase()}`,
+          [{ text: 'View Orders', onPress: () => navigation.navigate('OrderHistory') }]
+        );
+      } else {
+        Alert.alert('Error', result.message || 'Failed to place order');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
     } finally {
       setLoading(false);
     }

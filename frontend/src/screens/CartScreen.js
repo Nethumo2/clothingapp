@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
+<<<<<<< HEAD
   Image, ActivityIndicator, Alert, Platform
+=======
+  Image, ActivityIndicator, Alert,
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 } from 'react-native';
 import { fetchCart, removeFromCart, clearCart } from '../services/api';
 import { useCart } from '../context/CartContext';
 
+<<<<<<< HEAD
 const showAlert = (title, message) => {
     if (Platform.OS === 'web') {
         window.alert(`${title}\n${message}`);
@@ -25,6 +30,8 @@ const showConfirm = (title, message, onConfirm) => {
     }
 };
 
+=======
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
 export default function CartScreen({ navigation }) {
   const { refreshCart } = useCart();
   const [cart, setCart] = useState(null);
@@ -49,16 +56,33 @@ export default function CartScreen({ navigation }) {
       setCart(updated);
       refreshCart();
     } catch (e) {
+<<<<<<< HEAD
       showAlert('Error', 'Failed to remove item');
+=======
+      Alert.alert('Error', 'Failed to remove item');
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
     }
   };
 
   const handleClear = () => {
+<<<<<<< HEAD
       showConfirm('Clear Cart', 'Remove all items from cart?', async () => {
           await clearCart();
           await loadCart();
           refreshCart();
       });
+=======
+    Alert.alert('Clear Cart', 'Remove all items from cart?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Clear', style: 'destructive', onPress: async () => {
+          await clearCart();
+          await loadCart();
+          refreshCart();
+        }
+      },
+    ]);
+>>>>>>> 32f1e39a541ce39a126d9cb2c8356ce4d057b6dc
   };
 
   const renderItem = ({ item }) => (
