@@ -18,6 +18,7 @@ export default function EditProductScreen({ route, navigation }) {
 
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
+    const [comparePrice, setComparePrice] = useState('');
     const [category, setCategory] = useState('');
     const [description, setDescription] = useState('');
     const [countInStock, setCountInStock] = useState('');
@@ -32,6 +33,7 @@ export default function EditProductScreen({ route, navigation }) {
                 const data = await fetchProductById(productId);
                 setName(data.name || '');
                 setPrice(String(data.price || ''));
+                setComparePrice(data.comparePrice ? String(data.comparePrice) : '');
 
                 setCategory(data.category?.toString() || '');
                 setDescription(data.description || '');
@@ -66,6 +68,7 @@ export default function EditProductScreen({ route, navigation }) {
             await updateProduct(productId, {
                 name,
                 price,
+                comparePrice: comparePrice.trim() ? comparePrice : null,
                 category,
                 description,
                 countInStock,
@@ -100,6 +103,18 @@ export default function EditProductScreen({ route, navigation }) {
 
                 <Text style={styles.label}>Price (LKR) *</Text>
                 <TextInput style={styles.input} keyboardType="numeric" value={price} onChangeText={setPrice} />
+
+                <Text style={styles.label}>Original Price / Compare Price</Text>
+                <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={comparePrice}
+                    onChangeText={setComparePrice}
+                    placeholder="Leave empty if no sale"
+                />
+                <Text style={styles.hint}>
+                    Set this higher than Price to show this item in Sales.
+                </Text>
 
                 <Text style={styles.label}>Category</Text>
                 <TextInput style={styles.input} value={category} onChangeText={setCategory} />

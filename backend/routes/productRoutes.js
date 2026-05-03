@@ -79,13 +79,14 @@ router.get('/:id', async (req, res) => {
 // @access  Private/Admin
 router.post('/', protect, admin, async (req, res) => {
     try {
-        const { name, price, size, sizes, category, countInStock, stock, description, imageUrl, images } = req.body;
+        const { name, price, comparePrice, size, sizes, category, countInStock, stock, description, imageUrl, images } = req.body;
         const productSizes = size || sizes || [];
         const productImages = images || (imageUrl ? [imageUrl] : undefined);
 
         const product = new Product({
             name,
             price,
+            comparePrice,
             description,
             size: typeof productSizes === 'string' ? productSizes.split(',').map((s) => s.trim()) : productSizes,
             sizes: typeof productSizes === 'string' ? productSizes.split(',').map((s) => s.trim()) : productSizes,
@@ -108,12 +109,13 @@ router.post('/', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.put('/:id', protect, admin, async (req, res) => {
     try {
-        const { name, price, size, sizes, category, description, countInStock, stock, imageUrl, images } = req.body;
+        const { name, price, comparePrice, size, sizes, category, description, countInStock, stock, imageUrl, images } = req.body;
         const product = await Product.findById(req.params.id);
 
         if (product) {
             product.name = name || product.name;
             product.price = price || product.price;
+            product.comparePrice = comparePrice !== undefined ? comparePrice : product.comparePrice;
             product.description = description || product.description;
             product.countInStock = countInStock !== undefined ? countInStock : (stock !== undefined ? stock : product.countInStock);
             product.stock = stock !== undefined ? stock : (countInStock !== undefined ? countInStock : product.stock);

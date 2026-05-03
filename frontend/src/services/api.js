@@ -97,6 +97,7 @@ export const createProduct = async (product) => {
         body: JSON.stringify({
             name: product.name,
             price: product.price,
+            comparePrice: product.comparePrice,
             category: product.category,
             description: product.description || '',
             countInStock: product.countInStock || 0,
@@ -118,6 +119,7 @@ export const updateProduct = async (id, product) => {
         body: JSON.stringify({
             name: product.name,
             price: product.price,
+            comparePrice: product.comparePrice,
             category: product.category,
             description: product.description || '',
             countInStock: product.countInStock || 0,

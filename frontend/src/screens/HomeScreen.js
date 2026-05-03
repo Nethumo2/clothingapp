@@ -36,6 +36,15 @@ export default function HomeScreen({ navigation }) {
         return Math.round(((comparePrice - price) / comparePrice) * 100);
     };
 
+    const getSearchText = (product) => [
+        product.name,
+        product.category,
+        product.description,
+        ...(Array.isArray(product.colors) ? product.colors : []),
+        ...(Array.isArray(product.size) ? product.size : []),
+        ...(Array.isArray(product.sizes) ? product.sizes : []),
+    ].filter(Boolean).join(' ').toLowerCase();
+
     const loadProducts = async () => {
         try {
             const data = await fetchProducts();
@@ -242,6 +251,14 @@ export default function HomeScreen({ navigation }) {
             textDecorationLine: 'line-through',
             marginTop: 5,
         },
+
+        emptyText: {
+            color: '#777',
+            fontSize: 14,
+            fontWeight: '700',
+            marginTop: 28,
+            textAlign: 'center',
+        },
     });
 
     useFocusEffect(
@@ -253,9 +270,9 @@ export default function HomeScreen({ navigation }) {
     useEffect(() => { loadProducts(); }, []);
 
     useEffect(() => {
-        const q = search.toLowerCase();
+        const q = search.trim().toLowerCase();
         setFiltered(products.filter((p) => {
-            const matchesSearch = p.name?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q);
+            const matchesSearch = !q || getSearchText(p).includes(q);
             const matchesFilter =
                 productFilter === 'new'
                     ? isNewArrival(p)
@@ -398,6 +415,11 @@ export default function HomeScreen({ navigation }) {
                     columnWrapperStyle={styles.row}
                     contentContainerStyle={styles.list}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                    ListEmptyComponent={
+                        <Text style={styles.emptyText}>
+                            No products found. Try another search or filter.
+                        </Text>
+                    }
                 />
             )}
 
