@@ -21,6 +21,20 @@ const showAlert = (title, message) => {
     }
 };
 
+const getDiscountPercent = (product) => {
+    const price = Number(product?.price);
+    const comparePrice = Number(product?.comparePrice);
+    if (!Number.isFinite(price) || !Number.isFinite(comparePrice) || comparePrice <= price) return 0;
+    return Math.round(((comparePrice - price) / comparePrice) * 100);
+};
+
+const isNewArrival = (product) => {
+    if (!product?.createdAt) return false;
+    const createdTime = new Date(product.createdAt).getTime();
+    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+    return Number.isFinite(createdTime) && createdTime >= oneDayAgo;
+};
+
 export default function ProductDetailsScreen({ route, navigation }) {
     const { productId } = route.params;
     const { refreshCart } = useCart();
@@ -106,6 +120,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
     }
 
     const sizeArray = product?.size || product?.sizes || [];
+    const discountPercent = getDiscountPercent(product);
 
     return (
         <View style={styles.wrapper}>
@@ -116,6 +131,13 @@ export default function ProductDetailsScreen({ route, navigation }) {
                     source={{ uri: product.imageUrl || product.images?.[0]?.url || product.images?.[0] || 'https://via.placeholder.com/300' }}
                     style={styles.image}
                 />
+                {(discountPercent > 0 || isNewArrival(product)) && (
+                    <View style={[styles.productBadge, discountPercent > 0 && styles.productBadgeSale]}>
+                        <Text style={styles.productBadgeText}>
+                            {discountPercent > 0 ? `${discountPercent}% OFF` : 'NEW ARRIVAL'}
+                        </Text>
+                    </View>
+                )}
 
                 {/* BACK BUTTON */}
                 <TouchableOpacity style={styles.backCircle} onPress={() => navigation.goBack()}>
@@ -130,7 +152,14 @@ export default function ProductDetailsScreen({ route, navigation }) {
 
                     {/* NAME & PRICE */}
                     <Text style={styles.name}>{product.name}</Text>
-                    <Text style={styles.price}>LKR {Number(product.price).toLocaleString()}</Text>
+                    <View style={styles.priceRow}>
+                        <Text style={styles.price}>LKR {Number(product.price).toLocaleString()}</Text>
+                        {discountPercent > 0 && (
+                            <Text style={styles.comparePrice}>
+                                LKR {Number(product.comparePrice).toLocaleString()}
+                            </Text>
+                        )}
+                    </View>
 
                     {/* DESCRIPTION */}
                     {product.description ? (
@@ -271,6 +300,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24, borderRadius: 12,
     },
     image: { width: '100%', height: 320 },
+    productBadge: {
+        position: 'absolute', top: 58, right: 16,
+        backgroundColor: '#1a1a1a', borderRadius: 14,
+        paddingHorizontal: 12, paddingVertical: 7,
+    },
+    productBadgeSale: { backgroundColor: '#e63946' },
+    productBadgeText: { color: '#fff', fontSize: 11, fontWeight: '900' },
     backCircle: {
         position: 'absolute', top: 48, left: 16,
         backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 22,
@@ -284,7 +320,9 @@ const styles = StyleSheet.create({
     },
     categoryTagText: { fontSize: 12, color: '#555', fontWeight: '600' },
     name: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', marginBottom: 8 },
-    price: { fontSize: 22, fontWeight: '900', color: '#e63946', marginBottom: 12 },
+    priceRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 12 },
+    price: { fontSize: 22, fontWeight: '900', color: '#e63946' },
+    comparePrice: { fontSize: 14, color: '#888', textDecorationLine: 'line-through', fontWeight: '700' },
     description: { fontSize: 14, color: '#555', lineHeight: 22, marginBottom: 16 },
     section: { marginBottom: 20 },
     sectionTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a1a', marginBottom: 10 },
