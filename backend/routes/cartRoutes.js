@@ -20,6 +20,26 @@ const recalculateTotal = (items) => {
     }, 0);
 };
 
+const recalculateTotalFromProducts = async (items) => {
+    const productIds = items.map((item) => item.product?._id || item.product).filter(Boolean);
+    const products = await Product.find({ _id: { $in: productIds } }).select('price');
+    const priceByProductId = new Map(
+        products.map((product) => [product._id.toString(), Number(product.price)])
+    );
+
+    return items.reduce((total, item) => {
+        const productId = (item.product?._id || item.product)?.toString();
+        const price = priceByProductId.get(productId);
+        const quantity = Number(item.quantity);
+
+        if (!Number.isFinite(price) || !Number.isFinite(quantity)) {
+            return total;
+        }
+
+        return total + price * quantity;
+    }, 0);
+};
+
 // @desc    Get user cart
 // @route   GET /api/cart
 // @access  Private
@@ -61,6 +81,8 @@ router.post('/add', protect, async (req, res) => {
 
         if (!cart) {
             cart = new Cart({ user: req.user._id, items: [], totalPrice: 0 });
+        } else if (!Number.isFinite(Number(cart.totalPrice))) {
+            cart.totalPrice = 0;
         }
 
         const itemSize = size || '';
@@ -74,14 +96,10 @@ router.post('/add', protect, async (req, res) => {
             cart.items.push({ product: productId, quantity: cartQuantity, size: itemSize });
         }
 
-        cart.totalPrice = 0;
+        cart.totalPrice = await recalculateTotalFromProducts(cart.items);
         await cart.save();
 
         cart = await populateCart(cart._id);
-        cart.totalPrice = recalculateTotal(cart.items);
-        await cart.save();
-        cart = await populateCart(cart._id);
-
         res.json(cart);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -112,7 +130,7 @@ router.put('/update/:itemId', protect, async (req, res) => {
         }
 
         item.quantity = quantity;
-        cart.totalPrice = recalculateTotal(cart.items);
+        cart.totalPrice = await recalculateTotalFromProducts(cart.items);
 
         await cart.save();
 
@@ -135,7 +153,7 @@ router.delete('/remove/:itemId', protect, async (req, res) => {
 
             if (itemIndex > -1) {
                 cart.items.splice(itemIndex, 1);
-                cart.totalPrice = recalculateTotal(cart.items);
+                cart.totalPrice = await recalculateTotalFromProducts(cart.items);
                 await cart.save();
 
                 cart = await populateCart(cart._id);
