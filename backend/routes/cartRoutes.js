@@ -7,6 +7,11 @@ const router = express.Router();
 
 const populateCart = (cartId) => Cart.findById(cartId).populate('items.product');
 
+const getProductId = (item) => {
+    const product = item.product;
+    return (product?._id || product)?.toString();
+};
+
 const recalculateTotal = (items) => {
     return items.reduce((total, item) => {
         const price = Number(item.product?.price);
@@ -21,14 +26,14 @@ const recalculateTotal = (items) => {
 };
 
 const recalculateTotalFromProducts = async (items) => {
-    const productIds = items.map((item) => item.product?._id || item.product).filter(Boolean);
+    const productIds = items.map(getProductId).filter(Boolean);
     const products = await Product.find({ _id: { $in: productIds } }).select('price');
     const priceByProductId = new Map(
         products.map((product) => [product._id.toString(), Number(product.price)])
     );
 
     return items.reduce((total, item) => {
-        const productId = (item.product?._id || item.product)?.toString();
+        const productId = getProductId(item);
         const price = priceByProductId.get(productId);
         const quantity = Number(item.quantity);
 
@@ -86,8 +91,9 @@ router.post('/add', protect, async (req, res) => {
         }
 
         const itemSize = size || '';
+        cart.items = cart.items.filter((item) => getProductId(item));
         const itemIndex = cart.items.findIndex(
-            (p) => p.product.toString() === productId && (p.size || '') === itemSize
+            (p) => getProductId(p) === productId && (p.size || '') === itemSize
         );
 
         if (itemIndex > -1) {
