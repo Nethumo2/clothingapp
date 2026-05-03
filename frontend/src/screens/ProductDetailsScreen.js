@@ -1,0 +1,297 @@
+import React, { useState, useEffect } from 'react';
+import {
+    View, Text, Image, TouchableOpacity, StyleSheet,
+    ScrollView, ActivityIndicator, Modal
+} from 'react-native';
+
+import {
+    fetchProductById,
+    addToCart,
+    deleteProduct
+} from '../services/api';
+
+import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+
+export default function ProductDetailsScreen({ route, navigation }) {
+    const { productId } = route.params;
+    const { refreshCart } = useCart();
+    const { user } = useAuth();
+
+    const isAdmin = user?.isAdmin === true;
+
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [selectedSize, setSelectedSize] = useState(null);
+    const [quantity, setQuantity] = useState(1);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showCartModal, setShowCartModal] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+
+    useEffect(() => {
+        loadProduct();
+    }, []);
+
+    const loadProduct = async () => {
+        try {
+            const data = await fetchProductById(productId);
+            setProduct(data);
+            const sizeArray = data?.size || data?.sizes || [];
+            if (sizeArray.length > 0) setSelectedSize(sizeArray[0]);
+        } catch (e) {
+            window.alert('Failed to load product');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        setDeleting(true);
+        try {
+            const token = user?.token;
+            await deleteProduct(product._id, token);
+            setShowDeleteModal(false);
+            navigation.goBack();
+        } catch (err) {
+            setShowDeleteModal(false);
+            window.alert('Error: ' + (err.message || 'Delete failed'));
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const handleAddToCart = async () => {
+        try {
+            await addToCart(product._id, quantity, selectedSize, product.price);
+            await refreshCart();
+            setShowCartModal(true);
+        } catch (e) {
+            window.alert('Could not add to cart');
+        }
+    };
+
+    if (loading) {
+        return <ActivityIndicator style={{ flex: 1 }} size="large" color="#1a1a1a" />;
+    }
+
+    const sizeArray = product?.size || product?.sizes || [];
+
+    return (
+        <View style={styles.wrapper}>
+            <ScrollView style={styles.container}>
+
+                {/* IMAGE */}
+                <Image
+                    source={{ uri: product.imageUrl || product.images?.[0]?.url || product.images?.[0] || 'https://via.placeholder.com/300' }}
+                    style={styles.image}
+                />
+
+                {/* BACK BUTTON */}
+                <TouchableOpacity style={styles.backCircle} onPress={() => navigation.goBack()}>
+                    <Text style={styles.backArrow}>←</Text>
+                </TouchableOpacity>
+
+                <View style={styles.details}>
+                    {/* CATEGORY */}
+                    <View style={styles.categoryTag}>
+                        <Text style={styles.categoryTagText}>🏷️ {product.category}</Text>
+                    </View>
+
+                    {/* NAME & PRICE */}
+                    <Text style={styles.name}>{product.name}</Text>
+                    <Text style={styles.price}>LKR {Number(product.price).toLocaleString()}</Text>
+
+                    {/* DESCRIPTION */}
+                    {product.description ? (
+                        <Text style={styles.description}>{product.description}</Text>
+                    ) : null}
+
+                    {/* SIZES */}
+                    {sizeArray.length > 0 && (
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Size</Text>
+                            <View style={styles.sizeRow}>
+                                {sizeArray.map((s) => (
+                                    <TouchableOpacity
+                                        key={s}
+                                        style={[styles.sizeBtn, selectedSize === s && styles.sizeBtnActive]}
+                                        onPress={() => setSelectedSize(s)}
+                                    >
+                                        <Text style={[styles.sizeBtnText, selectedSize === s && styles.sizeBtnTextActive]}>
+                                            {s}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+                    )}
+
+                    {/* QUANTITY (user only) */}
+                    {!isAdmin && (
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Quantity</Text>
+                            <View style={styles.qtyRow}>
+                                <TouchableOpacity style={styles.qtyBtn} onPress={() => setQuantity(q => Math.max(1, q - 1))}>
+                                    <Text style={styles.qtyBtnText}>−</Text>
+                                </TouchableOpacity>
+                                <Text style={styles.qtyValue}>{quantity}</Text>
+                                <TouchableOpacity style={styles.qtyBtn} onPress={() => setQuantity(q => q + 1)}>
+                                    <Text style={styles.qtyBtnText}>+</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    )}
+
+                    {/* ADMIN CONTROLS */}
+                    {isAdmin && (
+                        <View style={styles.adminBox}>
+                            <TouchableOpacity
+                                style={styles.editBtn}
+                                onPress={() => navigation.navigate('EditProduct', { productId: product._id })}
+                            >
+                                <Text style={styles.btnText}>✏️ Edit Product</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.deleteBtn}
+                                onPress={() => setShowDeleteModal(true)}
+                            >
+                                <Text style={styles.btnText}>🗑️ Delete Product</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    {/* USER CONTROLS */}
+                    {!isAdmin && (
+                        <TouchableOpacity style={styles.cartBtn} onPress={handleAddToCart}>
+                            <Text style={styles.btnText}>🛒 Add to Cart</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </ScrollView>
+
+            {/* DELETE CONFIRMATION MODAL */}
+            <Modal transparent visible={showDeleteModal} animationType="fade" onRequestClose={() => setShowDeleteModal(false)}>
+                <View style={styles.overlay}>
+                    <View style={styles.modal}>
+                        <Text style={styles.modalTitle}>🗑️ Delete Product</Text>
+                        <Text style={styles.modalMessage}>
+                            Are you sure you want to delete "{product?.name}"? This cannot be undone.
+                        </Text>
+                        <View style={styles.modalBtnRow}>
+                            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowDeleteModal(false)}>
+                                <Text style={styles.modalCancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalConfirmBtn, deleting && { opacity: 0.6 }]}
+                                onPress={handleDelete}
+                                disabled={deleting}
+                            >
+                                <Text style={styles.modalConfirmText}>{deleting ? 'Deleting...' : 'Delete'}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* ADDED TO CART MODAL */}
+            <Modal transparent visible={showCartModal} animationType="fade" onRequestClose={() => setShowCartModal(false)}>
+                <View style={styles.overlay}>
+                    <View style={styles.modal}>
+                        <Text style={styles.modalTitle}>✅ Added to Cart!</Text>
+                        <Text style={styles.modalMessage}>
+                            {product?.name} ({selectedSize} × {quantity}) has been added to your cart.
+                        </Text>
+                        <View style={styles.modalBtnRow}>
+                            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowCartModal(false)}>
+                                <Text style={styles.modalCancelText}>Continue Shopping</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.modalConfirmBtn}
+                                onPress={() => { setShowCartModal(false); navigation.navigate('Cart'); }}
+                            >
+                                <Text style={styles.modalConfirmText}>View Cart</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    wrapper: { flex: 1, backgroundColor: '#f5f5f5' },
+    container: { flex: 1 },
+    image: { width: '100%', height: 320 },
+    backCircle: {
+        position: 'absolute', top: 48, left: 16,
+        backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 22,
+        width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
+    },
+    backArrow: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
+    details: { padding: 20 },
+    categoryTag: {
+        alignSelf: 'flex-start', backgroundColor: '#f0f0f0',
+        borderRadius: 20, paddingVertical: 5, paddingHorizontal: 12, marginBottom: 12,
+    },
+    categoryTagText: { fontSize: 12, color: '#555', fontWeight: '600' },
+    name: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', marginBottom: 8 },
+    price: { fontSize: 22, fontWeight: '900', color: '#e63946', marginBottom: 12 },
+    description: { fontSize: 14, color: '#555', lineHeight: 22, marginBottom: 16 },
+    section: { marginBottom: 20 },
+    sectionTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a1a', marginBottom: 10 },
+    sizeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+    sizeBtn: {
+        borderWidth: 1.5, borderColor: '#ddd', borderRadius: 10,
+        paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#fff',
+    },
+    sizeBtnActive: { borderColor: '#1a1a1a', backgroundColor: '#1a1a1a' },
+    sizeBtnText: { fontSize: 14, fontWeight: '600', color: '#555' },
+    sizeBtnTextActive: { color: '#fff' },
+    qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+    qtyBtn: {
+        width: 42, height: 42, borderRadius: 10,
+        backgroundColor: '#1a1a1a', alignItems: 'center', justifyContent: 'center',
+    },
+    qtyBtnText: { color: '#fff', fontSize: 22 },
+    qtyValue: { fontSize: 22, fontWeight: '800', color: '#1a1a1a', minWidth: 30, textAlign: 'center' },
+    adminBox: { gap: 12, marginTop: 10 },
+    editBtn: {
+        backgroundColor: '#3498db', padding: 16,
+        borderRadius: 12, alignItems: 'center',
+    },
+    deleteBtn: {
+        backgroundColor: '#e63946', padding: 16,
+        borderRadius: 12, alignItems: 'center',
+    },
+    cartBtn: {
+        backgroundColor: '#1a1a1a', padding: 16,
+        borderRadius: 12, alignItems: 'center', marginTop: 10,
+    },
+    btnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+
+    // Modal styles
+    overlay: {
+        flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center', alignItems: 'center', padding: 24,
+    },
+    modal: {
+        backgroundColor: '#fff', borderRadius: 16, padding: 24,
+        width: '100%', maxWidth: 400,
+        shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 20, elevation: 10,
+    },
+    modalTitle: { fontSize: 18, fontWeight: '800', color: '#1a1a1a', marginBottom: 10 },
+    modalMessage: { fontSize: 14, color: '#555', lineHeight: 22, marginBottom: 24 },
+    modalBtnRow: { flexDirection: 'row', gap: 12 },
+    modalCancelBtn: {
+        flex: 1, borderWidth: 1.5, borderColor: '#ddd',
+        borderRadius: 10, padding: 14, alignItems: 'center',
+    },
+    modalCancelText: { color: '#555', fontWeight: '700', fontSize: 14 },
+    modalConfirmBtn: {
+        flex: 1, backgroundColor: '#e63946',
+        borderRadius: 10, padding: 14, alignItems: 'center',
+    },
+    modalConfirmText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+});
