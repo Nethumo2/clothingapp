@@ -1,11 +1,6 @@
 /**
  * Unit Tests for Product Details Component
  * Member: Illangakoon I.W.M.T.D (IT24103131)
- * Component: Product Details Screen
- * Framework: Jest
- * 
- * Run with: npx jest ProductDetails.test.js
- * Install: npm install --save-dev jest @testing-library/react-native
  */
 // ─── Mock AsyncStorage as global ─────────────────────────────────────────────
 global.AsyncStorage = {
