@@ -103,9 +103,9 @@ export default function CartScreen({ navigation }) {
     return (
       <View style={styles.cartItem}>
         <Image
-          source={{ uri: product.imageUrl || 'https://via.placeholder.com/80x80?text=Item' }}
+          source={{ uri: product.imageUrl || product.images?.[0]?.url || product.images?.[0] || 'https://via.placeholder.com/120x120?text=Item' }}
           style={styles.itemImage}
-          resizeMode="cover"
+          resizeMode="contain"
         />
         <View style={styles.itemInfo}>
           <Text style={styles.itemName} numberOfLines={2}>{product.name || 'Product unavailable'}</Text>
@@ -142,7 +142,7 @@ export default function CartScreen({ navigation }) {
     );
   };
 
-  if (loading) return <ActivityIndicator size="large" color="#1a1a1a" style={styles.loader} />;
+  if (loading) return <ActivityIndicator size="large" color="#1B1B1B" style={styles.loader} />;
 
   const items = cart?.items || [];
   const quantityTotal = items.reduce((total, item) => total + Number(item.quantity || 0), 0);
@@ -196,52 +196,58 @@ export default function CartScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#FBFAF7' },
   loader: { flex: 1, justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#1a1a1a', padding: 20, paddingTop: 50,
+    backgroundColor: '#FFFFFF', padding: 24, paddingTop: 54, borderBottomWidth: 1, borderBottomColor: '#E9E2D8',
   },
-  backBtn: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: '800' },
-  clearBtn: { color: '#e63946', fontWeight: '700', fontSize: 14 },
+  backBtn: { color: '#9F8247', fontSize: 14, fontWeight: '700' },
+  headerTitle: { color: '#1B1B1B', fontSize: 24, fontFamily: 'Georgia', fontWeight: '700' },
+  clearBtn: { color: '#9F8247', fontWeight: '700', fontSize: 14 },
   list: { padding: 14, paddingBottom: 20 },
   cartItem: {
-    flexDirection: 'row', backgroundColor: '#fff', borderRadius: 14,
+    flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 16,
     padding: 12, marginBottom: 12,
-    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+    shadowColor: '#1B1B1B', shadowOpacity: 0.06, shadowRadius: 14, elevation: 3,
   },
-  itemImage: { width: 80, height: 80, borderRadius: 10 },
+  itemImage: { width: 88, height: 108, borderRadius: 12, backgroundColor: '#F7F3EC' },
   itemInfo: { flex: 1, marginLeft: 12 },
-  itemName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
-  itemMeta: { fontSize: 12, color: '#777', marginTop: 2 },
+  itemName: { fontSize: 14, fontWeight: '700', color: '#1B1B1B', marginBottom: 4 },
+  itemMeta: { fontSize: 12, color: '#8A8175', marginTop: 2 },
   quantityRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   quantityBtn: {
     width: 28, height: 28, borderRadius: 8,
-    backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#F5F1EA', alignItems: 'center', justifyContent: 'center',
   },
-  quantityBtnText: { fontSize: 16, fontWeight: '800', color: '#1a1a1a' },
+  quantityBtnText: { fontSize: 16, fontWeight: '800', color: '#1B1B1B' },
   disabledBtn: { opacity: 0.45 },
-  itemQty: { minWidth: 32, textAlign: 'center', fontSize: 14, fontWeight: '800', color: '#1a1a1a' },
-  itemPrice: { fontSize: 15, fontWeight: '800', color: '#e63946', marginTop: 4 },
+  itemQty: { minWidth: 32, textAlign: 'center', fontSize: 14, fontWeight: '800', color: '#1B1B1B' },
+  itemPrice: { fontSize: 15, fontWeight: '800', color: '#BFA46A', marginTop: 4 },
   removeBtn: {
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center',
+    width: 28, height: 28, borderRadius: 16,
+    backgroundColor: '#F5F1EA', alignItems: 'center', justifyContent: 'center',
     alignSelf: 'flex-start',
   },
-  removeBtnText: { color: '#e63946', fontSize: 12, fontWeight: '700' },
+  removeBtnText: { color: '#BFA46A', fontSize: 12, fontWeight: '700' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  emptyIcon: { fontSize: 24, fontWeight: '800', color: '#1a1a1a' },
-  emptyText: { fontSize: 18, fontWeight: '700', color: '#555' },
-  shopBtn: { backgroundColor: '#1a1a1a', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 28 },
-  shopBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  emptyIcon: { fontSize: 28, fontFamily: 'Georgia', fontWeight: '700', color: '#1B1B1B' },
+  emptyText: { fontSize: 18, fontWeight: '700', color: '#3B3B3B' },
+  shopBtn: {
+    backgroundColor: '#BFA46A', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 28,
+    shadowColor: '#BFA46A', shadowOpacity: 0.2, shadowRadius: 12, elevation: 3,
+  },
+  shopBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
   footer: {
-    backgroundColor: '#fff', padding: 16, paddingBottom: 28,
-    borderTopWidth: 1, borderTopColor: '#eee',
+    backgroundColor: '#FFFFFF', padding: 16, paddingBottom: 28,
+    borderTopWidth: 1, borderTopColor: '#E9E2D8',
   },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
-  totalLabel: { fontSize: 15, color: '#888' },
-  totalValue: { fontSize: 20, fontWeight: '900', color: '#1a1a1a' },
-  checkoutBtn: { backgroundColor: '#1a1a1a', borderRadius: 14, padding: 16, alignItems: 'center' },
-  checkoutBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  totalLabel: { fontSize: 15, color: '#8A8175' },
+  totalValue: { fontSize: 20, fontWeight: '900', color: '#1B1B1B' },
+  checkoutBtn: {
+    backgroundColor: '#BFA46A', borderRadius: 16, padding: 16, alignItems: 'center',
+    shadowColor: '#BFA46A', shadowOpacity: 0.22, shadowRadius: 14, elevation: 4,
+  },
+  checkoutBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
 });

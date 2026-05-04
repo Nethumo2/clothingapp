@@ -1,16 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     View, Text, FlatList, TouchableOpacity, StyleSheet,
-    Image, TextInput, ActivityIndicator, RefreshControl,
+    Image, TextInput, ActivityIndicator, RefreshControl, useWindowDimensions,
 } from 'react-native';
 
 import { fetchProducts } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useFocusEffect } from '@react-navigation/native';
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1200';
+
 export default function HomeScreen({ navigation }) {
     const { user, logout } = useAuth();
     const { cartCount } = useCart();
+    const { width } = useWindowDimensions();
+    const productColumns = width >= 900 ? 3 : 2;
+    const productCardWidth = productColumns === 3 ? '32%' : '48%';
+    const productImageHeight = productColumns === 3 ? 230 : 170;
 
     // 🛠️ ADMIN MODE
     const isAdmin = user?.isAdmin === true;
@@ -71,69 +78,157 @@ export default function HomeScreen({ navigation }) {
     const styles = StyleSheet.create({
         container: {
             flex: 1,
-            backgroundColor: '#f5f5f5',
+            backgroundColor: '#FBFAF7',
         },
 
         header: {
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: '#1a1a1a',
-            padding: 20,
-            paddingTop: 50,
+            backgroundColor: '#FFFFFF',
+            paddingHorizontal: 24,
+            paddingTop: 54,
+            paddingBottom: 18,
+            borderBottomWidth: 1,
+            borderBottomColor: '#E9E2D8',
+        },
+
+        brandLabel: {
+            color: '#9F8247',
+            fontSize: 11,
+            fontWeight: '900',
+            letterSpacing: 2,
+            marginBottom: 4,
         },
 
         greeting: {
-            color: '#fff',
-            fontSize: 20,
-            fontWeight: '800',
+            color: '#1B1B1B',
+            fontSize: 30,
+            fontFamily: 'Georgia',
+            fontWeight: '700',
         },
 
         tagline: {
-            color: '#aaa',
+            color: '#8A8175',
             fontSize: 13,
         },
 
         cartBtn: {
             position: 'relative',
+            width: 46,
+            height: 46,
+            borderRadius: 23,
+            borderWidth: 1,
+            borderColor: '#E9E2D8',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#FFFFFF',
         },
 
         cartIcon: {
-            fontSize: 24,
+            fontSize: 12,
+            fontWeight: '900',
+            color: '#0F3D33',
         },
 
         badge: {
             position: 'absolute',
             top: -5,
             right: -5,
-            backgroundColor: 'red',
-            borderRadius: 10,
+            backgroundColor: '#BFA46A',
+            borderRadius: 12,
             paddingHorizontal: 5,
         },
 
         badgeText: {
-            color: '#fff',
+            color: '#FFFFFF',
             fontSize: 10,
         },
 
         adminAddBtn: {
-            backgroundColor: '#e63946',
+            backgroundColor: '#BFA46A',
             margin: 10,
             padding: 12,
-            borderRadius: 10,
+            borderRadius: 12,
             alignItems: 'center',
         },
 
         adminAddText: {
-            color: '#fff',
+            color: '#FFFFFF',
             fontWeight: '700',
         },
 
         search: {
-            backgroundColor: '#fff',
-            margin: 10,
-            padding: 10,
-            borderRadius: 10,
+            backgroundColor: '#FFFFFF',
+            marginHorizontal: 16,
+            marginBottom: 12,
+            padding: 14,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: '#E8D8B8',
+            color: '#1B1B1B',
+        },
+
+        hero: {
+            backgroundColor: '#FFFFFF',
+            margin: 16,
+            borderRadius: 16,
+            overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: '#E9E2D8',
+            shadowColor: '#1B1B1B',
+            shadowOpacity: 0.06,
+            shadowRadius: 18,
+            shadowOffset: { width: 0, height: 8 },
+            elevation: 3,
+        },
+
+        heroImage: {
+            width: '100%',
+            height: 240,
+        },
+
+        heroVeil: {
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: 'rgba(255,255,255,0.18)',
+        },
+
+        heroCopy: {
+            position: 'absolute',
+            left: 22,
+            right: 22,
+            bottom: 24,
+        },
+
+        heroEyebrow: {
+            color: '#8A6F35',
+            fontSize: 11,
+            fontWeight: '900',
+            letterSpacing: 1.6,
+            marginBottom: 6,
+            textShadowColor: 'rgba(255,255,255,0.85)',
+            textShadowOffset: { width: 0, height: 1 },
+            textShadowRadius: 8,
+        },
+
+        heroTitle: {
+            color: '#1B1B1B',
+            fontFamily: 'Georgia',
+            fontSize: 26,
+            fontWeight: '700',
+            textShadowColor: 'rgba(255,255,255,0.9)',
+            textShadowOffset: { width: 0, height: 1 },
+            textShadowRadius: 10,
+        },
+
+        heroText: {
+            color: '#4F473F',
+            fontSize: 13,
+            lineHeight: 20,
+            marginTop: 8,
+            textShadowColor: 'rgba(255,255,255,0.9)',
+            textShadowOffset: { width: 0, height: 1 },
+            textShadowRadius: 8,
         },
 
         quickNav: {
@@ -143,9 +238,9 @@ export default function HomeScreen({ navigation }) {
         },
 
         navBtn: {
-            backgroundColor: '#fff',
+            backgroundColor: '#FFFFFF',
             padding: 10,
-            borderRadius: 10,
+            borderRadius: 12,
         },
 
         navBtnText: {
@@ -162,31 +257,32 @@ export default function HomeScreen({ navigation }) {
 
         filterBtn: {
             flex: 1,
-            backgroundColor: '#fff',
-            borderRadius: 10,
+            backgroundColor: '#FFFFFF',
+            borderRadius: 12,
             paddingVertical: 10,
             alignItems: 'center',
             borderWidth: 1,
-            borderColor: '#eee',
+            borderColor: '#E9E2D8',
         },
 
         filterBtnActive: {
-            backgroundColor: '#1a1a1a',
-            borderColor: '#1a1a1a',
+            backgroundColor: '#0F3D33',
+            borderColor: '#0F3D33',
         },
 
         filterBtnText: {
             fontSize: 12,
             fontWeight: '800',
-            color: '#555',
+            color: '#3B3B3B',
         },
 
         filterBtnTextActive: {
-            color: '#fff',
+            color: '#FFFFFF',
         },
 
         list: {
             padding: 10,
+            paddingBottom: 28,
         },
 
         row: {
@@ -194,16 +290,14 @@ export default function HomeScreen({ navigation }) {
         },
 
         card: {
-            backgroundColor: '#fff',
-            width: '48%',
+            backgroundColor: '#FFFFFF',
             marginBottom: 10,
-            borderRadius: 10,
+            borderRadius: 12,
             overflow: 'hidden',
         },
 
         image: {
             width: '100%',
-            height: 150,
         },
 
         imageWrap: {
@@ -214,18 +308,18 @@ export default function HomeScreen({ navigation }) {
             position: 'absolute',
             top: 8,
             left: 8,
-            borderRadius: 10,
+            borderRadius: 12,
             paddingHorizontal: 8,
             paddingVertical: 4,
-            backgroundColor: '#1a1a1a',
+            backgroundColor: '#1B1B1B',
         },
 
         badgePillSale: {
-            backgroundColor: '#e63946',
+            backgroundColor: '#BFA46A',
         },
 
         badgePillText: {
-            color: '#fff',
+            color: '#FFFFFF',
             fontSize: 10,
             fontWeight: '900',
         },
@@ -240,7 +334,7 @@ export default function HomeScreen({ navigation }) {
 
         cardCategory: {
             fontSize: 12,
-            color: '#777',
+            color: '#8A8175',
         },
 
         cardPrice: {
@@ -257,14 +351,14 @@ export default function HomeScreen({ navigation }) {
         },
 
         comparePrice: {
-            color: '#888',
+            color: '#8A8175',
             fontSize: 11,
             textDecorationLine: 'line-through',
             marginTop: 5,
         },
 
         emptyText: {
-            color: '#777',
+            color: '#8A8175',
             fontSize: 14,
             fontWeight: '700',
             marginTop: 28,
@@ -299,19 +393,87 @@ export default function HomeScreen({ navigation }) {
         loadProducts();
     }, []);
 
+    const listHeader = (
+        <>
+            {isAdmin && (
+                <TouchableOpacity
+                    style={styles.adminAddBtn}
+                    onPress={() => navigation.navigate('AddProduct')}
+                >
+                    <Text style={styles.adminAddText}>Add New Product</Text>
+                </TouchableOpacity>
+            )}
+
+            <View style={styles.hero}>
+                <Image source={{ uri: HERO_IMAGE }} style={styles.heroImage} resizeMode="cover" />
+                <View style={styles.heroVeil} />
+                <View style={styles.heroCopy}>
+                    <Text style={styles.heroEyebrow}>SPRING ATELIER</Text>
+                    <Text style={styles.heroTitle}>Quiet pieces, exquisite details.</Text>
+                    <Text style={styles.heroText}>Explore refined silhouettes in champagne neutrals and deep emerald accents.</Text>
+                </View>
+            </View>
+
+            <TextInput
+                style={styles.search}
+                placeholder="Search the collection"
+                placeholderTextColor="#8A8175"
+                value={search}
+                onChangeText={setSearch}
+            />
+
+            <View style={styles.quickNav}>
+                <TouchableOpacity style={styles.navBtn} onPress={() => navigation.navigate('Categories')}>
+                    <Text style={styles.navBtnText}>Categories</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.navBtn} onPress={() => navigation.navigate('OrderHistory')}>
+                    <Text style={styles.navBtnText}>Orders</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.navBtn} onPress={logout}>
+                    <Text style={styles.navBtnText}>Logout</Text>
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.filterRow}>
+                {[
+                    { key: 'all', label: 'All' },
+                    { key: 'new', label: 'New Arrivals' },
+                    { key: 'discounts', label: 'Discounts' },
+                ].map((item) => (
+                    <TouchableOpacity
+                        key={item.key}
+                        style={[styles.filterBtn, productFilter === item.key && styles.filterBtnActive]}
+                        onPress={() => setProductFilter(item.key)}
+                    >
+                        <Text style={[
+                            styles.filterBtnText,
+                            productFilter === item.key && styles.filterBtnTextActive,
+                        ]}
+                        >
+                            {item.label}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+        </>
+    );
+
+
     const renderProduct = ({ item }) => {
         const discountPercent = getDiscountPercent(item);
 
         return (
             <TouchableOpacity
-                style={styles.card}
+                style={[styles.card, { width: productCardWidth }]}
                 onPress={() => navigation.navigate('ProductDetails', { productId: item._id })}
                 activeOpacity={0.85}
             >
                 <View style={styles.imageWrap}>
                     <Image
                         source={{ uri: item.imageUrl || 'https://via.placeholder.com/200' }}
-                        style={styles.image}
+                        style={[styles.image, { height: productImageHeight }]}
                     />
                     {discountPercent > 0 ? (
                         <View style={[styles.badgePill, styles.badgePillSale]}>
@@ -345,12 +507,13 @@ export default function HomeScreen({ navigation }) {
             {/* HEADER */}
             <View style={styles.header}>
                 <View>
-                    <Text style={styles.greeting}>Hi, {user?.name?.split(' ')[0]} 👋</Text>
-                    <Text style={styles.tagline}>What are you looking for?</Text>
+                    <Text style={styles.brandLabel}>LUSH</Text>
+                    <Text style={styles.greeting}>New Luxury</Text>
+                    <Text style={styles.tagline}>Curated for {user?.name?.split(' ')[0] || 'you'}</Text>
                 </View>
 
                 <TouchableOpacity style={styles.cartBtn} onPress={() => navigation.navigate('Cart')}>
-                    <Text style={styles.cartIcon}>🛒</Text>
+                    <Text style={styles.cartIcon}>BAG</Text>
                     {cartCount > 0 && (
                         <View style={styles.badge}>
                             <Text style={styles.badgeText}>{cartCount}</Text>
@@ -360,71 +523,19 @@ export default function HomeScreen({ navigation }) {
             </View>
 
             {/* 🛠️ ADMIN BUTTON (NEW) */}
-            {isAdmin && (
-                <TouchableOpacity
-                    style={styles.adminAddBtn}
-                    onPress={() => navigation.navigate('AddProduct')}
-                >
-                    <Text style={styles.adminAddText}>➕ Add New Product</Text>
-                </TouchableOpacity>
-            )}
-
-            {/* SEARCH */}
-            <TextInput
-                style={styles.search}
-                placeholder="Search products..."
-                value={search}
-                onChangeText={setSearch}
-            />
-
-            {/* QUICK NAV */}
-            <View style={styles.quickNav}>
-                <TouchableOpacity style={styles.navBtn} onPress={() => navigation.navigate('Categories')}>
-                    <Text style={styles.navBtnText}>🏷️ Categories</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.navBtn} onPress={() => navigation.navigate('OrderHistory')}>
-                    <Text style={styles.navBtnText}>📦 Orders</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.navBtn} onPress={logout}>
-                    <Text style={styles.navBtnText}>🚪 Logout</Text>
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.filterRow}>
-                {[
-                    { key: 'all', label: 'All' },
-                    { key: 'new', label: 'New Arrivals' },
-                    { key: 'discounts', label: 'Discounts' },
-                ].map((item) => (
-                    <TouchableOpacity
-                        key={item.key}
-                        style={[styles.filterBtn, productFilter === item.key && styles.filterBtnActive]}
-                        onPress={() => setProductFilter(item.key)}
-                    >
-                        <Text style={[
-                            styles.filterBtnText,
-                            productFilter === item.key && styles.filterBtnTextActive,
-                        ]}
-                        >
-                            {item.label}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
-
             {/* LIST */}
             {loading ? (
-                <ActivityIndicator size="large" color="#1a1a1a" style={{ marginTop: 60 }} />
+                <ActivityIndicator size="large" color="#1B1B1B" style={{ marginTop: 60 }} />
             ) : (
                 <FlatList
                     data={filtered}
+                    key={`products-${productColumns}`}
                     keyExtractor={(item) => item._id}
                     renderItem={renderProduct}
-                    numColumns={2}
+                    numColumns={productColumns}
                     columnWrapperStyle={styles.row}
                     contentContainerStyle={styles.list}
+                    ListHeaderComponent={listHeader}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                     ListEmptyComponent={
                         <Text style={styles.emptyText}>

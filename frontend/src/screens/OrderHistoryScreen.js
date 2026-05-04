@@ -5,11 +5,11 @@ import {
 } from 'react-native';
 import { fetchMyOrders } from '../services/api';
 const STATUS_COLORS = {
-  Pending: '#f39c12',
-  Processing: '#3498db',
-  Shipped: '#9b59b6',
-  Delivered: '#2ecc71',
-  Cancelled: '#e63946',
+  Pending: '#BFA46A',
+  Processing: '#0F3D33',
+  Shipped: '#BFA46A',
+  Delivered: '#0F3D33',
+  Cancelled: '#BFA46A',
 };
 
 const STATUS_ICONS = {
@@ -52,7 +52,7 @@ export default function OrderHistoryScreen({ navigation }) {
 
   const renderOrder = ({ item }) => {
     const isExpanded = expanded === item._id;
-    const statusColor = STATUS_COLORS[item.status] || '#888';
+    const statusColor = STATUS_COLORS[item.status] || '#8A8175';
     const statusIcon = STATUS_ICONS[item.status] || '📦';
 
     return (
@@ -108,7 +108,7 @@ export default function OrderHistoryScreen({ navigation }) {
     );
   };
 
-  if (loading) return <ActivityIndicator size="large" color="#1a1a1a" style={styles.loader} />;
+  if (loading) return <ActivityIndicator size="large" color="#1B1B1B" style={styles.loader} />;
 
   return (
     <View style={styles.container}>
@@ -143,40 +143,40 @@ export default function OrderHistoryScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#FBFAF7' },
   loader: { flex: 1, justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#1a1a1a', padding: 20, paddingTop: 50,
+    backgroundColor: '#FFFFFF', padding: 24, paddingTop: 54, borderBottomWidth: 1, borderBottomColor: '#E9E2D8',
   },
-  backBtn: { color: '#fff', fontSize: 22, fontWeight: '700' },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: '800' },
+  backBtn: { color: '#9F8247', fontSize: 22, fontWeight: '700' },
+  headerTitle: { color: '#1B1B1B', fontSize: 24, fontFamily: 'Georgia', fontWeight: '700' },
   list: { padding: 14, paddingBottom: 30 },
   orderCard: {
-    backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 14,
-    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
+    backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 14,
+    shadowColor: '#1B1B1B', shadowOpacity: 0.06, shadowRadius: 16, elevation: 3,
   },
   orderHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  orderId: { fontSize: 14, fontWeight: '800', color: '#1a1a1a' },
-  orderDate: { fontSize: 12, color: '#888', marginTop: 2 },
+  orderId: { fontSize: 14, fontWeight: '800', color: '#1B1B1B' },
+  orderDate: { fontSize: 12, color: '#8A8175', marginTop: 2 },
   statusBadge: { borderRadius: 20, paddingVertical: 5, paddingHorizontal: 12 },
   statusText: { fontSize: 12, fontWeight: '700' },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  itemCount: { fontSize: 13, color: '#888' },
-  orderTotal: { fontSize: 16, fontWeight: '900', color: '#1a1a1a' },
+  itemCount: { fontSize: 13, color: '#8A8175' },
+  orderTotal: { fontSize: 16, fontWeight: '900', color: '#1B1B1B' },
   expandedDetails: { marginTop: 12 },
-  divider: { height: 1, backgroundColor: '#f0f0f0', marginVertical: 12 },
-  detailsTitle: { fontSize: 13, fontWeight: '800', color: '#888', marginBottom: 8, textTransform: 'uppercase' },
+  divider: { height: 1, backgroundColor: '#F5F1EA', marginVertical: 12 },
+  detailsTitle: { fontSize: 13, fontWeight: '800', color: '#8A8175', marginBottom: 8, textTransform: 'uppercase' },
   orderItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  orderItemName: { flex: 1, fontSize: 13, color: '#1a1a1a' },
-  orderItemQty: { fontSize: 12, color: '#888', marginHorizontal: 8 },
-  orderItemPrice: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
-  shippingText: { fontSize: 13, color: '#555', marginBottom: 3 },
-  expandHint: { textAlign: 'center', color: '#bbb', fontSize: 11, marginTop: 12 },
+  orderItemName: { flex: 1, fontSize: 13, color: '#1B1B1B' },
+  orderItemQty: { fontSize: 12, color: '#8A8175', marginHorizontal: 8 },
+  orderItemPrice: { fontSize: 13, fontWeight: '700', color: '#1B1B1B' },
+  shippingText: { fontSize: 13, color: '#3B3B3B', marginBottom: 3 },
+  expandHint: { textAlign: 'center', color: '#8A8175', fontSize: 11, marginTop: 12 },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 10 },
   emptyIcon: { fontSize: 60 },
-  emptyText: { fontSize: 20, fontWeight: '800', color: '#1a1a1a' },
-  emptySubtext: { fontSize: 14, color: '#888' },
-  shopBtn: { marginTop: 8, backgroundColor: '#1a1a1a', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 28 },
-  shopBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  emptyText: { fontSize: 24, fontFamily: 'Georgia', fontWeight: '700', color: '#1B1B1B' },
+  emptySubtext: { fontSize: 14, color: '#8A8175' },
+  shopBtn: { marginTop: 8, backgroundColor: '#1B1B1B', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 28 },
+  shopBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
 });

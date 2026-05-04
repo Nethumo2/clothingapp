@@ -84,7 +84,7 @@ export default function EditProductScreen({ route, navigation }) {
         }
     };
 
-    if (fetching) return <ActivityIndicator size="large" color="#1a1a1a" style={{ flex: 1 }} />;
+    if (fetching) return <ActivityIndicator size="large" color="#1B1B1B" style={{ flex: 1 }} />;
 
     return (
         <ScrollView style={styles.container}>
@@ -172,7 +172,7 @@ export default function EditProductScreen({ route, navigation }) {
                     disabled={loading}
                 >
                     {loading ? (
-                        <ActivityIndicator color="#fff" />
+                        <ActivityIndicator color="#FFFFFF" />
                     ) : (
                         <Text style={styles.submitBtnText}>Update Product</Text>
                     )}
@@ -183,30 +183,30 @@ export default function EditProductScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f5f5f5' },
+    container: { flex: 1, backgroundColor: '#FBFAF7' },
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        backgroundColor: '#1a1a1a', padding: 20, paddingTop: 50,
+        backgroundColor: '#FFFFFF', padding: 24, paddingTop: 54, borderBottomWidth: 1, borderBottomColor: '#E9E2D8',
     },
-    backBtn: { color: '#fff', fontSize: 22, fontWeight: '700' },
-    headerTitle: { color: '#fff', fontSize: 18, fontWeight: '800' },
+    backBtn: { color: '#9F8247', fontSize: 22, fontWeight: '700' },
+    headerTitle: { color: '#1B1B1B', fontSize: 22, fontFamily: 'Georgia', fontWeight: '700' },
     form: { padding: 16 },
     label: {
-        fontSize: 13, fontWeight: '700', color: '#555',
+        fontSize: 13, fontWeight: '700', color: '#3B3B3B',
         marginBottom: 5, marginTop: 12, textTransform: 'uppercase'
     },
     input: {
-        backgroundColor: '#fff', borderRadius: 10, padding: 12,
-        borderWidth: 1, borderColor: '#e0e0e0', fontSize: 14, color: '#1a1a1a',
+        backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12,
+        borderWidth: 1, borderColor: '#E9E2D8', fontSize: 14, color: '#1B1B1B',
     },
     textArea: { height: 100, textAlignVertical: 'top' },
     previewImage: {
-        width: '100%', height: 180, borderRadius: 10, marginTop: 10,
+        width: '100%', height: 180, borderRadius: 12, marginTop: 10,
     },
-    hint: { fontSize: 12, color: '#888', marginTop: 6, fontStyle: 'italic' },
+    hint: { fontSize: 12, color: '#8A8175', marginTop: 6, fontStyle: 'italic' },
     submitBtn: {
-        backgroundColor: '#e63946', borderRadius: 12,
+        backgroundColor: '#BFA46A', borderRadius: 14,
         padding: 16, alignItems: 'center', marginTop: 24, marginBottom: 40,
     },
-    submitBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+    submitBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
 });

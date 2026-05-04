@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, Image, TouchableOpacity, StyleSheet,
-    ScrollView, ActivityIndicator, Modal, Alert, Platform
+    ScrollView, ActivityIndicator, Modal, Alert, Platform, useWindowDimensions
 } from 'react-native';
 
 import {
@@ -47,6 +47,7 @@ const isNewArrival = (product) => {
 };
 
 export default function ProductDetailsScreen({ route, navigation }) {
+    const { width } = useWindowDimensions();
     const { productId } = route.params;
     const { refreshCart } = useCart();
     const { user } = useAuth();
@@ -115,7 +116,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
     };
 
     if (loading) {
-        return <ActivityIndicator style={{ flex: 1 }} size="large" color="#1a1a1a" />;
+        return <ActivityIndicator style={{ flex: 1 }} size="large" color="#1B1B1B" />;
     }
 
     if (!product) {
@@ -140,7 +141,8 @@ export default function ProductDetailsScreen({ route, navigation }) {
                 {/* IMAGE */}
                 <Image
                     source={{ uri: product.imageUrl || product.images?.[0]?.url || product.images?.[0] || 'https://via.placeholder.com/300' }}
-                    style={styles.image}
+                    style={[styles.image, { height: width >= 900 ? 460 : 360 }]}
+                    resizeMode="contain"
                 />
                 {(discountPercent > 0 || isNewArrival(product)) && (
                     <View style={[styles.productBadge, discountPercent > 0 && styles.productBadgeSale]}>
@@ -298,74 +300,75 @@ export default function ProductDetailsScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-    wrapper: { flex: 1, backgroundColor: '#f5f5f5' },
+    wrapper: { flex: 1, backgroundColor: '#FBFAF7' },
     container: { flex: 1 },
     errorContainer: {
         flex: 1, alignItems: 'center', justifyContent: 'center',
-        backgroundColor: '#f5f5f5', padding: 24,
+        backgroundColor: '#FBFAF7', padding: 24,
     },
-    errorTitle: { fontSize: 20, fontWeight: '800', color: '#1a1a1a', marginBottom: 8 },
-    errorText: { fontSize: 14, color: '#555', textAlign: 'center', marginBottom: 18 },
+    errorTitle: { fontSize: 24, fontFamily: 'Georgia', fontWeight: '700', color: '#1B1B1B', marginBottom: 8 },
+    errorText: { fontSize: 14, color: '#3B3B3B', textAlign: 'center', marginBottom: 18 },
     errorBtn: {
-        backgroundColor: '#1a1a1a', paddingVertical: 12,
+        backgroundColor: '#BFA46A', paddingVertical: 12,
         paddingHorizontal: 24, borderRadius: 12,
     },
-    image: { width: '100%', height: 320 },
+    image: { width: '100%', backgroundColor: '#F7F3EC' },
     productBadge: {
         position: 'absolute', top: 58, right: 16,
-        backgroundColor: '#1a1a1a', borderRadius: 14,
+        backgroundColor: '#1B1B1B', borderRadius: 16,
         paddingHorizontal: 12, paddingVertical: 7,
     },
-    productBadgeSale: { backgroundColor: '#e63946' },
-    productBadgeText: { color: '#fff', fontSize: 11, fontWeight: '900' },
+    productBadgeSale: { backgroundColor: '#BFA46A' },
+    productBadgeText: { color: '#FFFFFF', fontSize: 11, fontWeight: '900' },
     backCircle: {
         position: 'absolute', top: 48, left: 16,
         backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 22,
         width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
     },
-    backArrow: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
+    backArrow: { fontSize: 20, fontWeight: '700', color: '#1B1B1B' },
     details: { padding: 20 },
     categoryTag: {
-        alignSelf: 'flex-start', backgroundColor: '#f0f0f0',
+        alignSelf: 'flex-start', backgroundColor: '#F5F1EA',
         borderRadius: 20, paddingVertical: 5, paddingHorizontal: 12, marginBottom: 12,
     },
-    categoryTagText: { fontSize: 12, color: '#555', fontWeight: '600' },
-    name: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', marginBottom: 8 },
+    categoryTagText: { fontSize: 12, color: '#3B3B3B', fontWeight: '600' },
+    name: { fontSize: 28, fontFamily: 'Georgia', fontWeight: '700', color: '#1B1B1B', marginBottom: 8 },
     priceRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 12 },
-    price: { fontSize: 22, fontWeight: '900', color: '#e63946' },
-    comparePrice: { fontSize: 14, color: '#888', textDecorationLine: 'line-through', fontWeight: '700' },
-    description: { fontSize: 14, color: '#555', lineHeight: 22, marginBottom: 16 },
+    price: { fontSize: 22, fontWeight: '900', color: '#BFA46A' },
+    comparePrice: { fontSize: 14, color: '#8A8175', textDecorationLine: 'line-through', fontWeight: '700' },
+    description: { fontSize: 14, color: '#3B3B3B', lineHeight: 22, marginBottom: 16 },
     section: { marginBottom: 20 },
-    sectionTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a1a', marginBottom: 10 },
+    sectionTitle: { fontSize: 15, fontWeight: '700', color: '#1B1B1B', marginBottom: 10 },
     sizeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
     sizeBtn: {
-        borderWidth: 1.5, borderColor: '#ddd', borderRadius: 10,
-        paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#fff',
+        borderWidth: 1.5, borderColor: '#ddd', borderRadius: 12,
+        paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#FFFFFF',
     },
-    sizeBtnActive: { borderColor: '#1a1a1a', backgroundColor: '#1a1a1a' },
-    sizeBtnText: { fontSize: 14, fontWeight: '600', color: '#555' },
-    sizeBtnTextActive: { color: '#fff' },
+    sizeBtnActive: { borderColor: '#1B1B1B', backgroundColor: '#1B1B1B' },
+    sizeBtnText: { fontSize: 14, fontWeight: '600', color: '#3B3B3B' },
+    sizeBtnTextActive: { color: '#FFFFFF' },
     qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
     qtyBtn: {
-        width: 42, height: 42, borderRadius: 10,
-        backgroundColor: '#1a1a1a', alignItems: 'center', justifyContent: 'center',
+        width: 42, height: 42, borderRadius: 12,
+        backgroundColor: '#1B1B1B', alignItems: 'center', justifyContent: 'center',
     },
-    qtyBtnText: { color: '#fff', fontSize: 22 },
-    qtyValue: { fontSize: 22, fontWeight: '800', color: '#1a1a1a', minWidth: 30, textAlign: 'center' },
+    qtyBtnText: { color: '#FFFFFF', fontSize: 22 },
+    qtyValue: { fontSize: 22, fontWeight: '800', color: '#1B1B1B', minWidth: 30, textAlign: 'center' },
     adminBox: { gap: 12, marginTop: 10 },
     editBtn: {
-        backgroundColor: '#3498db', padding: 16,
+        backgroundColor: '#BFA46A', padding: 16,
         borderRadius: 12, alignItems: 'center',
     },
     deleteBtn: {
-        backgroundColor: '#e63946', padding: 16,
+        backgroundColor: '#BFA46A', padding: 16,
         borderRadius: 12, alignItems: 'center',
     },
     cartBtn: {
-        backgroundColor: '#1a1a1a', padding: 16,
+        backgroundColor: '#BFA46A', padding: 16,
         borderRadius: 12, alignItems: 'center', marginTop: 10,
+        shadowColor: '#BFA46A', shadowOpacity: 0.22, shadowRadius: 14, elevation: 4,
     },
-    btnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+    btnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
 
     // Modal styles
     overlay: {
@@ -373,21 +376,21 @@ const styles = StyleSheet.create({
         justifyContent: 'center', alignItems: 'center', padding: 24,
     },
     modal: {
-        backgroundColor: '#fff', borderRadius: 16, padding: 24,
+        backgroundColor: '#FFFFFF', borderRadius: 16, padding: 24,
         width: '100%', maxWidth: 400,
-        shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 20, elevation: 10,
+        shadowColor: '#1B1B1B', shadowOpacity: 0.2, shadowRadius: 20, elevation: 10,
     },
-    modalTitle: { fontSize: 18, fontWeight: '800', color: '#1a1a1a', marginBottom: 10 },
-    modalMessage: { fontSize: 14, color: '#555', lineHeight: 22, marginBottom: 24 },
+    modalTitle: { fontSize: 22, fontFamily: 'Georgia', fontWeight: '700', color: '#1B1B1B', marginBottom: 10 },
+    modalMessage: { fontSize: 14, color: '#3B3B3B', lineHeight: 22, marginBottom: 24 },
     modalBtnRow: { flexDirection: 'row', gap: 12 },
     modalCancelBtn: {
         flex: 1, borderWidth: 1.5, borderColor: '#ddd',
-        borderRadius: 10, padding: 14, alignItems: 'center',
+        borderRadius: 12, padding: 14, alignItems: 'center',
     },
-    modalCancelText: { color: '#555', fontWeight: '700', fontSize: 14 },
+    modalCancelText: { color: '#3B3B3B', fontWeight: '700', fontSize: 14 },
     modalConfirmBtn: {
-        flex: 1, backgroundColor: '#e63946',
-        borderRadius: 10, padding: 14, alignItems: 'center',
+        flex: 1, backgroundColor: '#BFA46A',
+        borderRadius: 12, padding: 14, alignItems: 'center',
     },
-    modalConfirmText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+    modalConfirmText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
 });

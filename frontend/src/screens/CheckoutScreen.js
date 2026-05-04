@@ -115,7 +115,7 @@ export default function CheckoutScreen({ route, navigation }) {
           <TextInput
             style={styles.input}
             placeholder="John Doe"
-            placeholderTextColor="#bbb"
+            placeholderTextColor="#8A8175"
             value={fullName}
             onChangeText={setFullName}
           />
@@ -123,7 +123,7 @@ export default function CheckoutScreen({ route, navigation }) {
           <TextInput
             style={styles.input}
             placeholder="123 Main Street"
-            placeholderTextColor="#bbb"
+            placeholderTextColor="#8A8175"
             value={address}
             onChangeText={setAddress}
           />
@@ -131,7 +131,7 @@ export default function CheckoutScreen({ route, navigation }) {
           <TextInput
             style={styles.input}
             placeholder="Colombo"
-            placeholderTextColor="#bbb"
+            placeholderTextColor="#8A8175"
             value={city}
             onChangeText={setCity}
           />
@@ -139,7 +139,7 @@ export default function CheckoutScreen({ route, navigation }) {
           <TextInput
             style={styles.input}
             placeholder="0771234567"
-            placeholderTextColor="#bbb"
+            placeholderTextColor="#8A8175"
             keyboardType="phone-pad"
             value={phoneNumber}
             onChangeText={setPhoneNumber}
@@ -159,7 +159,7 @@ export default function CheckoutScreen({ route, navigation }) {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color="#FFFFFF" />
           ) : (
             <Text style={styles.placeOrderBtnText}>
               Place Order - LKR {orderTotal.toLocaleString()}
@@ -172,47 +172,50 @@ export default function CheckoutScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#FBFAF7' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#1a1a1a', padding: 20, paddingTop: 50,
+    backgroundColor: '#FFFFFF', padding: 24, paddingTop: 54, borderBottomWidth: 1, borderBottomColor: '#E9E2D8',
   },
-  backBtn: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: '800' },
+  backBtn: { color: '#9F8247', fontSize: 14, fontWeight: '700' },
+  headerTitle: { color: '#1B1B1B', fontSize: 24, fontFamily: 'Georgia', fontWeight: '700' },
   content: { padding: 16, paddingBottom: 30 },
-  sectionTitle: { fontSize: 17, fontWeight: '800', color: '#1a1a1a', marginBottom: 12, marginTop: 8 },
+  sectionTitle: { fontSize: 17, fontWeight: '800', color: '#1B1B1B', marginBottom: 12, marginTop: 8 },
   summaryBox: {
-    backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 20,
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 20,
+    shadowColor: '#1B1B1B', shadowOpacity: 0.04, shadowRadius: 14, elevation: 3,
   },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  summaryItem: { fontSize: 13, color: '#555', flex: 1, marginRight: 8 },
-  summaryPrice: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
-  totalRow: { borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 10, marginTop: 4, marginBottom: 0 },
-  totalLabel: { fontSize: 15, fontWeight: '800', color: '#1a1a1a' },
-  totalValue: { fontSize: 16, fontWeight: '900', color: '#e63946' },
+  summaryItem: { fontSize: 13, color: '#3B3B3B', flex: 1, marginRight: 8 },
+  summaryPrice: { fontSize: 13, fontWeight: '700', color: '#1B1B1B' },
+  totalRow: { borderTopWidth: 1, borderTopColor: '#E9E2D8', paddingTop: 10, marginTop: 4, marginBottom: 0 },
+  totalLabel: { fontSize: 15, fontWeight: '800', color: '#1B1B1B' },
+  totalValue: { fontSize: 16, fontWeight: '900', color: '#BFA46A' },
   formBox: {
-    backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 16,
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 16,
+    shadowColor: '#1B1B1B', shadowOpacity: 0.04, shadowRadius: 14, elevation: 3,
   },
-  inputLabel: { fontSize: 12, fontWeight: '700', color: '#888', marginBottom: 5, textTransform: 'uppercase' },
+  inputLabel: { fontSize: 12, fontWeight: '700', color: '#8A8175', marginBottom: 5, textTransform: 'uppercase' },
   input: {
-    borderWidth: 1, borderColor: '#eee', borderRadius: 10,
-    padding: 12, fontSize: 14, color: '#1a1a1a', marginBottom: 14,
-    backgroundColor: '#fafafa',
+    borderWidth: 1, borderColor: '#E9E2D8', borderRadius: 12,
+    padding: 12, fontSize: 14, color: '#1B1B1B', marginBottom: 14,
+    backgroundColor: '#FBFAF7',
   },
   paymentNote: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
     borderRadius: 12, padding: 14, gap: 10,
-    borderLeftWidth: 4, borderLeftColor: '#2ecc71',
+    borderLeftWidth: 4, borderLeftColor: '#BFA46A',
   },
-  paymentNoteIcon: { fontSize: 13, fontWeight: '900', color: '#2ecc71' },
-  paymentNoteText: { flex: 1, fontSize: 13, color: '#555', lineHeight: 18 },
+  paymentNoteIcon: { fontSize: 13, fontWeight: '900', color: '#BFA46A' },
+  paymentNoteText: { flex: 1, fontSize: 13, color: '#3B3B3B', lineHeight: 18 },
   footer: {
-    backgroundColor: '#fff', padding: 16, paddingBottom: 28,
-    borderTopWidth: 1, borderTopColor: '#eee',
+    backgroundColor: '#FFFFFF', padding: 16, paddingBottom: 28,
+    borderTopWidth: 1, borderTopColor: '#E9E2D8',
   },
-  placeOrderBtn: { backgroundColor: '#1a1a1a', borderRadius: 14, padding: 18, alignItems: 'center' },
-  placeOrderBtnDisabled: { backgroundColor: '#aaa' },
-  placeOrderBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  placeOrderBtn: {
+    backgroundColor: '#BFA46A', borderRadius: 16, padding: 18, alignItems: 'center',
+    shadowColor: '#BFA46A', shadowOpacity: 0.22, shadowRadius: 14, elevation: 4,
+  },
+  placeOrderBtnDisabled: { backgroundColor: '#8A8175' },
+  placeOrderBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
 });
