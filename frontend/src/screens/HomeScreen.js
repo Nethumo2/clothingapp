@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     View, Text, FlatList, TouchableOpacity, StyleSheet,
-    Image, TextInput, ActivityIndicator, RefreshControl, Alert, Platform
+    Image, TextInput, ActivityIndicator, RefreshControl,
 } from 'react-native';
 
 import { fetchProducts } from '../services/api';
@@ -12,33 +12,29 @@ export default function HomeScreen({ navigation }) {
     const { user, logout } = useAuth();
     const { cartCount } = useCart();
 
-    const showAlert = (title, message) => {
-        if (Platform.OS === 'web') {
-            window.alert(`${title}\n${message}`);
-        } else {
-            Alert.alert(title, message);
-        }
-    };
-
-    const showConfirm = (title, message, onConfirm) => {
-        if (Platform.OS === 'web') {
-            if (window.confirm(`${title}\n${message}`)) onConfirm();
-        } else {
-            Alert.alert(title, message, [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'OK', onPress: onConfirm }
-            ]);
-        }
-    };
-
     // 🛠️ ADMIN MODE
     const isAdmin = user?.isAdmin === true;
 
     const [products, setProducts] = useState([]);
     const [filtered, setFiltered] = useState([]);
     const [search, setSearch] = useState('');
+    const [productFilter, setProductFilter] = useState('all');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+
+    const isNewArrival = (product) => {
+        if (!product.createdAt) return false;
+        const createdTime = new Date(product.createdAt).getTime();
+        const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+        return Number.isFinite(createdTime) && createdTime >= oneDayAgo;
+    };
+
+    const getDiscountPercent = (product) => {
+        const price = Number(product.price);
+        const comparePrice = Number(product.comparePrice);
+        if (!Number.isFinite(price) || !Number.isFinite(comparePrice) || comparePrice <= price) return 0;
+        return Math.round(((comparePrice - price) / comparePrice) * 100);
+    };
 
     const loadProducts = async () => {
         try {
@@ -137,6 +133,38 @@ export default function HomeScreen({ navigation }) {
             fontWeight: '600',
         },
 
+        filterRow: {
+            flexDirection: 'row',
+            gap: 8,
+            paddingHorizontal: 10,
+            marginBottom: 8,
+        },
+
+        filterBtn: {
+            flex: 1,
+            backgroundColor: '#fff',
+            borderRadius: 10,
+            paddingVertical: 10,
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: '#eee',
+        },
+
+        filterBtnActive: {
+            backgroundColor: '#1a1a1a',
+            borderColor: '#1a1a1a',
+        },
+
+        filterBtnText: {
+            fontSize: 12,
+            fontWeight: '800',
+            color: '#555',
+        },
+
+        filterBtnTextActive: {
+            color: '#fff',
+        },
+
         list: {
             padding: 10,
         },
@@ -158,6 +186,30 @@ export default function HomeScreen({ navigation }) {
             height: 150,
         },
 
+        imageWrap: {
+            position: 'relative',
+        },
+
+        badgePill: {
+            position: 'absolute',
+            top: 8,
+            left: 8,
+            borderRadius: 10,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            backgroundColor: '#1a1a1a',
+        },
+
+        badgePillSale: {
+            backgroundColor: '#e63946',
+        },
+
+        badgePillText: {
+            color: '#fff',
+            fontSize: 10,
+            fontWeight: '900',
+        },
+
         cardInfo: {
             padding: 10,
         },
@@ -176,6 +228,20 @@ export default function HomeScreen({ navigation }) {
             fontWeight: '700',
             marginTop: 5,
         },
+
+        priceRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            flexWrap: 'wrap',
+        },
+
+        comparePrice: {
+            color: '#888',
+            fontSize: 11,
+            textDecorationLine: 'line-through',
+            marginTop: 5,
+        },
     });
 
     useFocusEffect(
@@ -188,33 +254,62 @@ export default function HomeScreen({ navigation }) {
 
     useEffect(() => {
         const q = search.toLowerCase();
-        setFiltered(products.filter(p =>
-            p.name?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q)
-        ));
-    }, [search, products]);
+        setFiltered(products.filter((p) => {
+            const matchesSearch = p.name?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q);
+            const matchesFilter =
+                productFilter === 'new'
+                    ? isNewArrival(p)
+                    : productFilter === 'sales'
+                        ? getDiscountPercent(p) > 0
+                        : true;
+            return matchesSearch && matchesFilter;
+        }));
+    }, [search, products, productFilter]);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         loadProducts();
     }, []);
 
-    const renderProduct = ({ item }) => (
-        <TouchableOpacity
-            style={styles.card}
-            onPress={() => navigation.navigate('ProductDetails', { productId: item._id })}
-            activeOpacity={0.85}
-        >
-            <Image
-                source={{ uri: item.imageUrl || 'https://via.placeholder.com/200' }}
-                style={styles.image}
-            />
-            <View style={styles.cardInfo}>
-                <Text style={styles.cardName} numberOfLines={2}>{item.name}</Text>
-                <Text style={styles.cardCategory}>{item.category}</Text>
-                <Text style={styles.cardPrice}>LKR {Number(item.price).toLocaleString()}</Text>
-            </View>
-        </TouchableOpacity>
-    );
+    const renderProduct = ({ item }) => {
+        const discountPercent = getDiscountPercent(item);
+
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() => navigation.navigate('ProductDetails', { productId: item._id })}
+                activeOpacity={0.85}
+            >
+                <View style={styles.imageWrap}>
+                    <Image
+                        source={{ uri: item.imageUrl || 'https://via.placeholder.com/200' }}
+                        style={styles.image}
+                    />
+                    {discountPercent > 0 ? (
+                        <View style={[styles.badgePill, styles.badgePillSale]}>
+                            <Text style={styles.badgePillText}>{discountPercent}% OFF</Text>
+                        </View>
+                    ) : isNewArrival(item) ? (
+                        <View style={styles.badgePill}>
+                            <Text style={styles.badgePillText}>NEW</Text>
+                        </View>
+                    ) : null}
+                </View>
+                <View style={styles.cardInfo}>
+                    <Text style={styles.cardName} numberOfLines={2}>{item.name}</Text>
+                    <Text style={styles.cardCategory}>{item.category}</Text>
+                    <View style={styles.priceRow}>
+                        <Text style={styles.cardPrice}>LKR {Number(item.price).toLocaleString()}</Text>
+                        {discountPercent > 0 && (
+                            <Text style={styles.comparePrice}>
+                                LKR {Number(item.comparePrice).toLocaleString()}
+                            </Text>
+                        )}
+                    </View>
+                </View>
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -236,22 +331,14 @@ export default function HomeScreen({ navigation }) {
                 </TouchableOpacity>
             </View>
 
+            {/* 🛠️ ADMIN BUTTON (NEW) */}
             {isAdmin && (
-                <>
-                    <TouchableOpacity
-                        style={styles.adminAddBtn}
-                        onPress={() => navigation.navigate('AddProduct')}
-                    >
-                        <Text style={styles.adminAddText}>➕ Add New Product</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.adminAddBtn, { backgroundColor: '#3498db' }]}
-                        onPress={() => navigation.navigate('AdminOrders')}
-                    >
-                        <Text style={styles.adminAddText}>📦 Manage Orders</Text>
-                    </TouchableOpacity>
-                </>
+                <TouchableOpacity
+                    style={styles.adminAddBtn}
+                    onPress={() => navigation.navigate('AddProduct')}
+                >
+                    <Text style={styles.adminAddText}>➕ Add New Product</Text>
+                </TouchableOpacity>
             )}
 
             {/* SEARCH */}
@@ -275,6 +362,28 @@ export default function HomeScreen({ navigation }) {
                 <TouchableOpacity style={styles.navBtn} onPress={logout}>
                     <Text style={styles.navBtnText}>🚪 Logout</Text>
                 </TouchableOpacity>
+            </View>
+
+            <View style={styles.filterRow}>
+                {[
+                    { key: 'all', label: 'All' },
+                    { key: 'new', label: 'New Arrivals' },
+                    { key: 'sales', label: 'Sales' },
+                ].map((item) => (
+                    <TouchableOpacity
+                        key={item.key}
+                        style={[styles.filterBtn, productFilter === item.key && styles.filterBtnActive]}
+                        onPress={() => setProductFilter(item.key)}
+                    >
+                        <Text style={[
+                            styles.filterBtnText,
+                            productFilter === item.key && styles.filterBtnTextActive,
+                        ]}
+                        >
+                            {item.label}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
             </View>
 
             {/* LIST */}

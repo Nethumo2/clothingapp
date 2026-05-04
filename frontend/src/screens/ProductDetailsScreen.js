@@ -21,15 +21,18 @@ const showAlert = (title, message) => {
     }
 };
 
-const showConfirm = (title, message, onConfirm) => {
-    if (Platform.OS === 'web') {
-        if (window.confirm(`${title}\n${message}`)) onConfirm();
-    } else {
-        Alert.alert(title, message, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'OK', onPress: onConfirm }
-        ]);
-    }
+const getDiscountPercent = (product) => {
+    const price = Number(product?.price);
+    const comparePrice = Number(product?.comparePrice);
+    if (!Number.isFinite(price) || !Number.isFinite(comparePrice) || comparePrice <= price) return 0;
+    return Math.round(((comparePrice - price) / comparePrice) * 100);
+};
+
+const isNewArrival = (product) => {
+    if (!product?.createdAt) return false;
+    const createdTime = new Date(product.createdAt).getTime();
+    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+    return Number.isFinite(createdTime) && createdTime >= oneDayAgo;
 };
 
 export default function ProductDetailsScreen({ route, navigation }) {
@@ -46,23 +49,24 @@ export default function ProductDetailsScreen({ route, navigation }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showCartModal, setShowCartModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [addingToCart, setAddingToCart] = useState(false);
 
     useEffect(() => {
-        loadProduct();
-    }, []);
+        const loadProduct = async () => {
+            try {
+                const data = await fetchProductById(productId);
+                setProduct(data);
+                const sizeArray = data?.size || data?.sizes || [];
+                if (sizeArray.length > 0) setSelectedSize(sizeArray[0]);
+            } catch (_e) {
+                showAlert('Error', 'Failed to load product');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const loadProduct = async () => {
-        try {
-            const data = await fetchProductById(productId);
-            setProduct(data);
-            const sizeArray = data?.size || data?.sizes || [];
-            if (sizeArray.length > 0) setSelectedSize(sizeArray[0]);
-        } catch (e) {
-            showAlert('Error', 'Failed to load product');
-        } finally {
-            setLoading(false);
-        }
-    };
+        loadProduct();
+    }, [productId]);
 
     const handleDelete = async () => {
         setDeleting(true);
@@ -73,19 +77,29 @@ export default function ProductDetailsScreen({ route, navigation }) {
             navigation.goBack();
         } catch (err) {
             setShowDeleteModal(false);
-            showAlert('Error: ' + (err.message || 'Delete failed'));
+            showAlert('Error', err.message || 'Delete failed');
         } finally {
             setDeleting(false);
         }
     };
 
     const handleAddToCart = async () => {
+        const sizeArray = product?.size || product?.sizes || [];
+
+        if (sizeArray.length > 0 && !selectedSize) {
+            showAlert('Size Required', 'Please select a size before adding this item to cart');
+            return;
+        }
+
         try {
-            await addToCart(product._id, quantity, selectedSize, product.price);
+            setAddingToCart(true);
+            await addToCart(product._id, quantity, selectedSize);
             await refreshCart();
             setShowCartModal(true);
         } catch (e) {
-            showAlert('Error', 'Could not add to cart');
+            showAlert('Error', e.message || 'Could not add to cart');
+        } finally {
+            setAddingToCart(false);
         }
     };
 
@@ -93,7 +107,20 @@ export default function ProductDetailsScreen({ route, navigation }) {
         return <ActivityIndicator style={{ flex: 1 }} size="large" color="#1a1a1a" />;
     }
 
+    if (!product) {
+        return (
+            <View style={styles.errorContainer}>
+                <Text style={styles.errorTitle}>Product not found</Text>
+                <Text style={styles.errorText}>Please check your connection and try again.</Text>
+                <TouchableOpacity style={styles.errorBtn} onPress={() => navigation.goBack()}>
+                    <Text style={styles.btnText}>Go Back</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
     const sizeArray = product?.size || product?.sizes || [];
+    const discountPercent = getDiscountPercent(product);
 
     return (
         <View style={styles.wrapper}>
@@ -104,6 +131,13 @@ export default function ProductDetailsScreen({ route, navigation }) {
                     source={{ uri: product.imageUrl || product.images?.[0]?.url || product.images?.[0] || 'https://via.placeholder.com/300' }}
                     style={styles.image}
                 />
+                {(discountPercent > 0 || isNewArrival(product)) && (
+                    <View style={[styles.productBadge, discountPercent > 0 && styles.productBadgeSale]}>
+                        <Text style={styles.productBadgeText}>
+                            {discountPercent > 0 ? `${discountPercent}% OFF` : 'NEW ARRIVAL'}
+                        </Text>
+                    </View>
+                )}
 
                 {/* BACK BUTTON */}
                 <TouchableOpacity style={styles.backCircle} onPress={() => navigation.goBack()}>
@@ -118,7 +152,14 @@ export default function ProductDetailsScreen({ route, navigation }) {
 
                     {/* NAME & PRICE */}
                     <Text style={styles.name}>{product.name}</Text>
-                    <Text style={styles.price}>LKR {Number(product.price).toLocaleString()}</Text>
+                    <View style={styles.priceRow}>
+                        <Text style={styles.price}>LKR {Number(product.price).toLocaleString()}</Text>
+                        {discountPercent > 0 && (
+                            <Text style={styles.comparePrice}>
+                                LKR {Number(product.comparePrice).toLocaleString()}
+                            </Text>
+                        )}
+                    </View>
 
                     {/* DESCRIPTION */}
                     {product.description ? (
@@ -182,8 +223,14 @@ export default function ProductDetailsScreen({ route, navigation }) {
 
                     {/* USER CONTROLS */}
                     {!isAdmin && (
-                        <TouchableOpacity style={styles.cartBtn} onPress={handleAddToCart}>
-                            <Text style={styles.btnText}>🛒 Add to Cart</Text>
+                        <TouchableOpacity
+                            style={[styles.cartBtn, addingToCart && { opacity: 0.65 }]}
+                            onPress={handleAddToCart}
+                            disabled={addingToCart}
+                        >
+                            <Text style={styles.btnText}>
+                                {addingToCart ? 'Adding...' : '🛒 Add to Cart'}
+                            </Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -195,7 +242,7 @@ export default function ProductDetailsScreen({ route, navigation }) {
                     <View style={styles.modal}>
                         <Text style={styles.modalTitle}>🗑️ Delete Product</Text>
                         <Text style={styles.modalMessage}>
-                            Are you sure you want to delete "{product?.name}"? This cannot be undone.
+                            {`Are you sure you want to delete "${product?.name}"? This cannot be undone.`}
                         </Text>
                         <View style={styles.modalBtnRow}>
                             <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowDeleteModal(false)}>
@@ -242,7 +289,24 @@ export default function ProductDetailsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
     wrapper: { flex: 1, backgroundColor: '#f5f5f5' },
     container: { flex: 1 },
+    errorContainer: {
+        flex: 1, alignItems: 'center', justifyContent: 'center',
+        backgroundColor: '#f5f5f5', padding: 24,
+    },
+    errorTitle: { fontSize: 20, fontWeight: '800', color: '#1a1a1a', marginBottom: 8 },
+    errorText: { fontSize: 14, color: '#555', textAlign: 'center', marginBottom: 18 },
+    errorBtn: {
+        backgroundColor: '#1a1a1a', paddingVertical: 12,
+        paddingHorizontal: 24, borderRadius: 12,
+    },
     image: { width: '100%', height: 320 },
+    productBadge: {
+        position: 'absolute', top: 58, right: 16,
+        backgroundColor: '#1a1a1a', borderRadius: 14,
+        paddingHorizontal: 12, paddingVertical: 7,
+    },
+    productBadgeSale: { backgroundColor: '#e63946' },
+    productBadgeText: { color: '#fff', fontSize: 11, fontWeight: '900' },
     backCircle: {
         position: 'absolute', top: 48, left: 16,
         backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 22,
@@ -256,7 +320,9 @@ const styles = StyleSheet.create({
     },
     categoryTagText: { fontSize: 12, color: '#555', fontWeight: '600' },
     name: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', marginBottom: 8 },
-    price: { fontSize: 22, fontWeight: '900', color: '#e63946', marginBottom: 12 },
+    priceRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 12 },
+    price: { fontSize: 22, fontWeight: '900', color: '#e63946' },
+    comparePrice: { fontSize: 14, color: '#888', textDecorationLine: 'line-through', fontWeight: '700' },
     description: { fontSize: 14, color: '#555', lineHeight: 22, marginBottom: 16 },
     section: { marginBottom: 20 },
     sectionTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a1a', marginBottom: 10 },

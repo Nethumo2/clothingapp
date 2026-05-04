@@ -1,12 +1,22 @@
 const mongoose = require('mongoose');
 
+mongoose.set('bufferCommands', false);
+
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    if (!process.env.MONGO_URI) {
+      throw new Error('MONGO_URI is missing from backend/.env');
+    }
+
+    const dbName = process.env.MONGO_DB_NAME || 'clothingDB';
+
+    const conn = await mongoose.connect(process.env.MONGO_URI, {
+      dbName,
+      serverSelectionTimeoutMS: 10000,
+    });
+    console.log(`MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
+    console.error(`MongoDB connection error: ${error.message}`);
   }
 };
 

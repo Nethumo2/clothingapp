@@ -1,29 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Image, Alert, Platform,
+  ActivityIndicator, Image,
 } from 'react-native';
 import { fetchCategories, fetchProducts } from '../services/api';
-
-const showAlert = (title, message) => {
-    if (Platform.OS === 'web') {
-        window.alert(`${title}\n${message}`);
-    } else {
-        Alert.alert(title, message);
-    }
-};
-
-const showConfirm = (title, message, onConfirm) => {
-    if (Platform.OS === 'web') {
-        if (window.confirm(`${title}\n${message}`)) onConfirm();
-    } else {
-        Alert.alert(title, message, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'OK', onPress: onConfirm }
-        ]);
-    }
-};
-
 const CATEGORY_COLORS = [
   '#FFE5D9', '#D9F0FF', '#D9FFE5', '#F5D9FF',
   '#FFF3D9', '#FFD9D9', '#D9FFF5', '#E5D9FF',
@@ -97,12 +77,16 @@ export default function CategoriesScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity style={styles.headerAction} onPress={() => navigation.navigate('Home')}>
+          <Text style={styles.backBtn}>Back</Text>
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Categories</Text>
-        {selected && (
-          <TouchableOpacity onPress={() => setSelected(null)}>
-            <Text style={styles.clearBtn}>Clear Filter</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={styles.headerAction}
+          onPress={() => (selected ? setSelected(null) : navigation.navigate('Home'))}
+        >
+          <Text style={styles.clearBtn}>{selected ? 'Clear' : 'Home'}</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Category Grid */}
@@ -145,6 +129,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     backgroundColor: '#1a1a1a', padding: 20, paddingTop: 50,
   },
+  headerAction: { width: 64 },
+  backBtn: { color: '#fff', fontWeight: '700', fontSize: 14 },
   headerTitle: { color: '#fff', fontSize: 22, fontWeight: '800' },
   clearBtn: { color: '#e63946', fontWeight: '700', fontSize: 14 },
   catList: { padding: 12 },

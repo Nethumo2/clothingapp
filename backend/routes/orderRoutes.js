@@ -1,22 +1,71 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 const { protect, admin } = require('../middleware/auth');
+
+const toValidQuantity = (quantity) => {
+  const value = Number(quantity);
+  return Number.isInteger(value) && value > 0 ? value : 0;
+};
+
+const toValidPrice = (price) => {
+  const value = Number(price);
+  return Number.isFinite(value) && value >= 0 ? value : 0;
+};
+
+const firstImage = (images) => {
+  if (!Array.isArray(images) || images.length === 0) return '';
+  const image = images[0];
+  return image?.url || image?.src || image;
+};
 
 // @route   POST /api/orders
 // @desc    Create new order
 // @access  Private
 router.post('/', protect, async (req, res) => {
   try {
-    const { orderItems, shippingAddress, totalPrice } = req.body;
+    const { orderItems, shippingAddress } = req.body;
 
-    if (orderItems && orderItems.length === 0) {
+    if (!Array.isArray(orderItems) || orderItems.length === 0) {
       return res.status(400).json({ message: 'No order items' });
     }
 
+    const cleanedOrderItems = [];
+
+    for (const item of orderItems) {
+      const productId = item.product || item.productId;
+      const quantity = toValidQuantity(item.qty || item.quantity);
+
+      if (!productId || quantity < 1) {
+        return res.status(400).json({ message: 'Invalid order item' });
+      }
+
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+
+      const price = toValidPrice(product.price);
+
+      cleanedOrderItems.push({
+        name: product.name,
+        qty: quantity,
+        image: product.imageUrl || firstImage(product.images),
+        price,
+        product: product._id,
+      });
+    }
+
+    const totalPrice = cleanedOrderItems.reduce(
+      (total, item) => total + item.price * item.qty,
+      0
+    );
+
     const order = new Order({
       user: req.user._id,
-      orderItems,
+      orderItems: cleanedOrderItems,
       shippingAddress,
       totalPrice,
     });
@@ -75,45 +124,18 @@ router.put('/:id/status', protect, admin, async (req, res) => {
 // @route   DELETE /api/orders/:id
 // @desc    Delete order
 // @access  Private/Admin
-router.delete('/:id', protect, async (req, res) => {
-    try {
-        const order = await Order.findById(req.params.id);
-        if (order) {
-            // Make sure user can only cancel their own order
-            if (order.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
-                return res.status(401).json({ message: 'Not authorized' });
-            }
-            await order.deleteOne();
-            res.json({ message: 'Order removed' });
-        } else {
-            res.status(404).json({ message: 'Order not found' });
-        }
-    } catch (err) {
-        res.status(500).json({ message: 'Server Error' });
+router.delete('/:id', protect, admin, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (order) {
+      await order.deleteOne();
+      res.json({ message: 'Order removed' });
+    } else {
+      res.status(404).json({ message: 'Order not found' });
     }
-});
-
-router.put('/:id/shipping', protect, async (req, res) => {
-    try {
-        const order = await Order.findById(req.params.id);
-        if (!order) return res.status(404).json({ message: 'Order not found' });
-        if (order.user.toString() !== req.user._id.toString()) {
-            return res.status(401).json({ message: 'Not authorized' });
-        }
-        if (order.status !== 'Pending') {
-            return res.status(400).json({ message: 'Can only edit Pending orders' });
-        }
-        order.shippingAddress = {
-            fullName: req.body.fullName || order.shippingAddress.fullName,
-            address: req.body.address || order.shippingAddress.address,
-            city: req.body.city || order.shippingAddress.city,
-            phoneNumber: req.body.phoneNumber || order.shippingAddress.phoneNumber,
-        };
-        const updated = await order.save();
-        res.json(updated);
-    } catch (err) {
-        res.status(500).json({ message: 'Server Error' });
-    }
+  } catch (err) {
+    res.status(500).json({ message: 'Server Error' });
+  }
 });
 
 module.exports = router;

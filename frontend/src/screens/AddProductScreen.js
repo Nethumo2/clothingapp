@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image, Alert, Platform
+import {
+    View, Text, TextInput, TouchableOpacity,
+    StyleSheet, ActivityIndicator, ScrollView, Image, Alert, Platform,
 } from 'react-native';
 import { createProduct } from '../services/api';
+
+const showAlert = (title, message) => {
+    if (Platform.OS === 'web') {
+        window.alert(message ? `${title}\n${message}` : title);
+    } else {
+        Alert.alert(title, message);
+    }
+};
 
 export default function AddProductScreen({ navigation }) {
     const [name, setName] = useState('');
@@ -13,28 +23,9 @@ export default function AddProductScreen({ navigation }) {
     const [imageUrl, setImageUrl] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const showAlert = (title, message) => {
-        if (Platform.OS === 'web') {
-            window.alert(`${title}\n${message}`);
-        } else {
-            Alert.alert(title, message);
-        }
-    };
-
-    const showConfirm = (title, message, onConfirm) => {
-        if (Platform.OS === 'web') {
-            if (window.confirm(`${title}\n${message}`)) onConfirm();
-        } else {
-            Alert.alert(title, message, [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'OK', onPress: onConfirm }
-            ]);
-        }
-    };
-
     const handleSubmit = async () => {
         if (!name || !price || !category || !size) {
-            showAlert('Please fill name, price, category and size');
+            showAlert('Error', 'Please fill name, price, category and size');
             return;
         }
         setLoading(true);
@@ -48,7 +39,7 @@ export default function AddProductScreen({ navigation }) {
                 size,
                 imageUrl: imageUrl || 'https://via.placeholder.com/300x300?text=No+Image',
             });
-            showAlert('Product added!');
+            showAlert('Success', 'Product added!');
             navigation.navigate('Home');
         } catch (e) {
             showAlert('Error', e.message || 'Failed to add product');
@@ -61,14 +52,13 @@ export default function AddProductScreen({ navigation }) {
         <ScrollView style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Text style={styles.backBtn}>←</Text>
+                    <Text style={styles.backBtn}>Back</Text>
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Add New Product</Text>
-                <View style={{ width: 30 }} />
+                <View style={{ width: 40 }} />
             </View>
 
             <View style={styles.form}>
-
                 <Text style={styles.label}>Product Name *</Text>
                 <TextInput
                     style={styles.input}
@@ -130,18 +120,11 @@ export default function AddProductScreen({ navigation }) {
                     autoCapitalize="none"
                 />
 
-                {/* Image Preview */}
                 {imageUrl ? (
-                    <Image
-                        source={{ uri: imageUrl }}
-                        style={styles.previewImage}
-                        resizeMode="cover"
-                    />
+                    <Image source={{ uri: imageUrl }} style={styles.previewImage} resizeMode="cover" />
                 ) : null}
 
-                <Text style={styles.hint}>
-                    💡 Upload image to imgur.com for free and paste the URL here
-                </Text>
+                <Text style={styles.hint}>Upload an image and paste the URL here.</Text>
 
                 <TouchableOpacity
                     style={[styles.submitBtn, loading && { opacity: 0.6 }]}
@@ -165,12 +148,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         backgroundColor: '#1a1a1a', padding: 20, paddingTop: 50,
     },
-    backBtn: { color: '#fff', fontSize: 22, fontWeight: '700' },
+    backBtn: { color: '#fff', fontSize: 14, fontWeight: '700' },
     headerTitle: { color: '#fff', fontSize: 18, fontWeight: '800' },
     form: { padding: 16 },
     label: {
         fontSize: 13, fontWeight: '700', color: '#555',
-        marginBottom: 5, marginTop: 12, textTransform: 'uppercase'
+        marginBottom: 5, marginTop: 12, textTransform: 'uppercase',
     },
     input: {
         backgroundColor: '#fff', borderRadius: 10, padding: 12,

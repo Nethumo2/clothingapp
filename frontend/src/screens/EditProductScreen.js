@@ -13,17 +13,6 @@ const showAlert = (title, message) => {
     }
 };
 
-const showConfirm = (title, message, onConfirm) => {
-    if (Platform.OS === 'web') {
-        if (window.confirm(`${title}\n${message}`)) onConfirm();
-    } else {
-        Alert.alert(title, message, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'OK', onPress: onConfirm }
-        ]);
-    }
-};
-
 export default function EditProductScreen({ route, navigation }) {
     const { productId } = route.params;
 
@@ -38,39 +27,34 @@ export default function EditProductScreen({ route, navigation }) {
     const [fetching, setFetching] = useState(true);
 
     useEffect(() => {
+        const loadProduct = async () => {
+            try {
+                const data = await fetchProductById(productId);
+                setName(data.name || '');
+                setPrice(String(data.price || ''));
+
+                setCategory(data.category?.toString() || '');
+                setDescription(data.description || '');
+                setCountInStock(String(data.countInStock ?? data.stock ?? ''));
+
+                const sizeData = data.size || data.sizes || [];
+                setSize(Array.isArray(sizeData) ? sizeData.join(', ') : String(sizeData));
+
+                const img = data.imageUrl ||
+                    data.images?.[0]?.url ||
+                    (typeof data.images?.[0] === 'string' ? data.images[0] : '') ||
+                    '';
+                setImageUrl(img);
+
+            } catch (_e) {
+                showAlert('Error', 'Failed to load product');
+            } finally {
+                setFetching(false);
+            }
+        };
+
         loadProduct();
-    }, []);
-
-    const loadProduct = async () => {
-        try {
-            const data = await fetchProductById(productId);
-            setName(data.name || '');
-            setPrice(String(data.price || ''));
-
-            // Handle category as ObjectId or string
-            setCategory(data.category?.toString() || '');
-            setDescription(data.description || '');
-
-            // Handle both stock field names
-            setCountInStock(String(data.countInStock ?? data.stock ?? ''));
-
-            // Handle both size field names
-            const sizeData = data.size || data.sizes || [];
-            setSize(Array.isArray(sizeData) ? sizeData.join(', ') : String(sizeData));
-
-            // Handle both image field formats
-            const img = data.imageUrl ||
-                data.images?.[0]?.url ||
-                (typeof data.images?.[0] === 'string' ? data.images[0] : '') ||
-                '';
-            setImageUrl(img);
-
-        } catch (e) {
-            showAlert('Error', 'Failed to load product');
-        } finally {
-            setFetching(false);
-        }
-    };
+    }, [productId]);
 
     const handleSubmit = async () => {
         if (!name || !price || !size) {
@@ -91,7 +75,7 @@ export default function EditProductScreen({ route, navigation }) {
             showAlert('Success', 'Product updated!');
             navigation.navigate('Home');
         } catch (e) {
-            showAlert(e.message || 'Failed to update product');
+            showAlert('Error', e.message || 'Failed to update product');
         } finally {
             setLoading(false);
         }

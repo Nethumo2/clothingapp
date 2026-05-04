@@ -1,16 +1,46 @@
 const express = require('express');
 const Product = require('../models/Product');
+const Category = require('../models/Category');
 const { protect, admin } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Helper to normalize product fields
-const normalize = (p) => {
-    const obj = p.toObject ? p.toObject() : p;
+const firstImage = (images) => {
+    if (!Array.isArray(images) || images.length === 0) return '';
+    const image = images[0];
+    return image?.url || image?.src || image;
+};
+
+const getCategoryId = (category) => {
+    if (!category) return '';
+    if (typeof category === 'object') return (category._id || category)?.toString();
+    return category.toString();
+};
+
+const loadCategoryMap = async (products) => {
+    const categoryIds = products
+        .map((product) => getCategoryId(product.category))
+        .filter((category) => category && /^[0-9a-fA-F]{24}$/.test(category));
+
+    const categories = await Category.find({ _id: { $in: categoryIds } }).lean();
+    return new Map(categories.map((category) => [category._id.toString(), category]));
+};
+
+const normalize = (product, categoryMap = new Map()) => {
+    const obj = product.toObject ? product.toObject() : { ...product };
+    const categoryId = getCategoryId(obj.category);
+    const category = categoryMap.get(categoryId);
+
     obj.size = obj.size || obj.sizes || [];
-    obj.imageUrl = obj.imageUrl || obj.images?.[0]?.url || obj.images?.[0] || '';
+    obj.sizes = obj.sizes || obj.size || [];
+    obj.imageUrl = obj.imageUrl || firstImage(obj.images) || 'https://via.placeholder.com/300x300?text=No+Image';
+    obj.images = obj.images || [obj.imageUrl];
     obj.countInStock = obj.countInStock ?? obj.stock ?? 0;
-    obj.category = obj.category?.toString() || '';
+    obj.stock = obj.stock ?? obj.countInStock ?? 0;
+    obj.categoryId = categoryId;
+    obj.category = category?.name || obj.category?.name || categoryId || '';
+    obj.categoryImage = category?.image || '';
+    obj.categorySlug = category?.slug || '';
     return obj;
 };
 
@@ -19,8 +49,9 @@ const normalize = (p) => {
 // @access  Public
 router.get('/', async (req, res) => {
     try {
-        const products = await Product.find({});
-        res.json(products.map(normalize));
+        const products = await Product.find({}).lean();
+        const categoryMap = await loadCategoryMap(products);
+        res.json(products.map((product) => normalize(product, categoryMap)));
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -31,9 +62,10 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id);
+        const product = await Product.findById(req.params.id).lean();
         if (product) {
-            res.json(normalize(product));
+            const categoryMap = await loadCategoryMap([product]);
+            res.json(normalize(product, categoryMap));
         } else {
             res.status(404).json({ message: 'Product not found' });
         }
@@ -47,20 +79,25 @@ router.get('/:id', async (req, res) => {
 // @access  Private/Admin
 router.post('/', protect, admin, async (req, res) => {
     try {
-        const { name, price, size, category, countInStock, description, imageUrl } = req.body;
+        const { name, price, size, sizes, category, countInStock, stock, description, imageUrl, images } = req.body;
+        const productSizes = size || sizes || [];
+        const productImages = images || (imageUrl ? [imageUrl] : undefined);
 
         const product = new Product({
             name,
             price,
             description,
-            size: typeof size === 'string' ? size.split(',').map(s => s.trim()) : size,
+            size: typeof productSizes === 'string' ? productSizes.split(',').map((s) => s.trim()) : productSizes,
+            sizes: typeof productSizes === 'string' ? productSizes.split(',').map((s) => s.trim()) : productSizes,
             category,
-            countInStock: countInStock || 0,
+            countInStock: countInStock ?? stock ?? 0,
+            stock: stock ?? countInStock ?? 0,
             imageUrl: imageUrl || 'https://via.placeholder.com/300x300?text=No+Image',
+            images: productImages,
         });
 
         const createdProduct = await product.save();
-        res.status(201).json(createdProduct);
+        res.status(201).json(normalize(createdProduct));
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -71,17 +108,26 @@ router.post('/', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.put('/:id', protect, admin, async (req, res) => {
     try {
-        const { name, price, size, category, description, countInStock, imageUrl } = req.body;
+        const { name, price, size, sizes, category, description, countInStock, stock, imageUrl, images } = req.body;
         const product = await Product.findById(req.params.id);
 
         if (product) {
             product.name = name || product.name;
             product.price = price || product.price;
             product.description = description || product.description;
-            product.countInStock = countInStock !== undefined ? countInStock : product.countInStock;
+            product.countInStock = countInStock !== undefined ? countInStock : (stock !== undefined ? stock : product.countInStock);
+            product.stock = stock !== undefined ? stock : (countInStock !== undefined ? countInStock : product.stock);
             product.category = category || product.category;
-            if (size) product.size = typeof size === 'string' ? size.split(',').map(s => s.trim()) : size;
-            if (imageUrl) product.imageUrl = imageUrl;
+            const productSizes = size || sizes;
+            if (productSizes) {
+                const normalizedSizes = typeof productSizes === 'string'
+                    ? productSizes.split(',').map((s) => s.trim())
+                    : productSizes;
+                product.size = normalizedSizes;
+                product.sizes = normalizedSizes;
+            }
+            if (imageUrl !== undefined) product.imageUrl = imageUrl;
+            if (images !== undefined) product.images = images;
 
             const updatedProduct = await product.save();
             res.json(normalize(updatedProduct));

@@ -1,4 +1,5 @@
 import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { useAuth } from '../context/AuthContext';
@@ -13,7 +14,6 @@ import CheckoutScreen from '../screens/CheckoutScreen';
 import OrderHistoryScreen from '../screens/OrderHistoryScreen';
 import AddProductScreen from '../screens/AddProductScreen';
 import EditProductScreen from '../screens/EditProductScreen';
-import AdminOrdersScreen from '../screens/AdminOrdersScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,8 +39,6 @@ function AppStack() {
             <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
             <Stack.Screen name="AddProduct" component={AddProductScreen} />
             <Stack.Screen name="EditProduct" component={EditProductScreen} />
-            <Stack.Screen name="AdminOrders" component={AdminOrdersScreen} />
-
 
         </Stack.Navigator>
     );
@@ -51,5 +49,9 @@ export default function AppNavigator() {
 
     if (loading) return null;
 
-    return user ? <AppStack /> : <AuthStack />;
+    return (
+        <NavigationContainer>
+            {user ? <AppStack /> : <AuthStack />}
+        </NavigationContainer>
+    );
 }

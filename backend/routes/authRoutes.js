@@ -4,12 +4,15 @@ const generateToken = require('../utils/generateToken');
 
 const router = express.Router();
 
+const normalizeEmail = (email) => email?.trim().toLowerCase();
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, password } = req.body;
+        const email = normalizeEmail(req.body.email);
 
         const userExists = await User.findOne({ email });
 
@@ -44,7 +47,8 @@ router.post('/register', async (req, res) => {
 // @access  Public
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { password } = req.body;
+        const email = normalizeEmail(req.body.email);
 
         const user = await User.findOne({ email });
 

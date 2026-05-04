@@ -14,9 +14,7 @@ const cartRoutes = require('./routes/cartRoutes');
 
 // Load env vars
 
-// Connect to database
 const connectDB = require('./config/db');
-connectDB();
 
 const app = express();
 
@@ -44,4 +42,7 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    setTimeout(connectDB, 0);
+});
